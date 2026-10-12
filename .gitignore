@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.log
+.vscode/*
+.idea
+.DS_Store
+
+# Test-artefacten (screenshots en Chrome-profielen)
+tests/e2e/out/
