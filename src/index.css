@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Theme: Licht, rustig, groen accent ──────────── */
+
+:root {
+  /* Light theme (default) */
+  --color-bg: #f7f6f2;
+  --color-surface: #ffffff;
+  --color-surface-solid: #ffffff;
+  --color-surface-2: #f0f1f5;
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-muted: #6b7280; /* 4,83:1 op wit — WCAG AA voor kleine tekst */
+  --color-text: #1a1a2e;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #4b5563;
+  --color-text-dim: rgba(0, 0, 0, 0.2);
+
+  /* Accent: deep navy */
+  --color-accent: #2F5D50;
+  --color-accent-light: #E8F0ED;
+  --color-accent-dim: rgba(47, 93, 80, 0.08);
+
+  --color-green: #10B981;
+  --color-green-dim: rgba(16, 185, 129, 0.08);
+  --color-red: #EF4444;
+  --color-red-dim: rgba(239, 68, 68, 0.08);
+  --color-orange: #F59E0B;
+  --color-orange-dim: rgba(245, 158, 11, 0.1);
+  --color-blue: #3B82F6;
+
+  --chart-text: #1a1a2e;
+  --chart-text-dim: rgba(0, 0, 0, 0.35);
+  --chart-grid: rgba(0, 0, 0, 0.05);
+  --chart-axis: rgba(0, 0, 0, 0.1);
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
+  --shadow-sheet: 0 -4px 32px rgba(0, 0, 0, 0.1);
+  --shadow-nav: 0 -1px 12px rgba(0, 0, 0, 0.05);
+
+  color-scheme: light;
+}
+
+html.dark {
+  --color-bg: #0d0d14;
+  --color-surface: #1a1a2e;
+  --color-surface-solid: #1a1a2e;
+  --color-surface-2: #252540;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-muted: #6b7280;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-tertiary: #cbd5e1;
+  --color-text-dim: rgba(255, 255, 255, 0.15);
+
+  --color-accent: #5FA58F;
+  --color-accent-light: rgba(95, 165, 143, 0.12);
+  --color-accent-dim: rgba(95, 165, 143, 0.08);
+
+  --color-green: #34D399;
+  --color-green-dim: rgba(52, 211, 153, 0.1);
+  --color-red: #F87171;
+  --color-red-dim: rgba(248, 113, 113, 0.1);
+  --color-orange: #FBBF24;
+  --color-orange-dim: rgba(251, 191, 36, 0.12);
+  --color-blue: #60A5FA;
+
+  --chart-text: #f1f5f9;
+  --chart-text-dim: rgba(255, 255, 255, 0.35);
+  --chart-grid: rgba(255, 255, 255, 0.05);
+  --chart-axis: rgba(255, 255, 255, 0.1);
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-card-hover: 0 2px 8px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-sheet: 0 -4px 32px rgba(0, 0, 0, 0.4);
+  --shadow-nav: 0 -1px 12px rgba(0, 0, 0, 0.3);
+
+  color-scheme: dark;
+}
+
+/* ─── Base ────────────────────────────────────────── */
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-top { padding-top: env(safe-area-inset-top); }
+
+/* ─── Cards ───────────────────────────────────────── */
+
+.card {
+  background: var(--color-surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ─── Sheet handle ────────────────────────────────── */
+
+.sheet-handle::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-text-dim);
+  margin: 10px auto 6px;
+}
+
+/* Greepje op een gekleurde sheetkop */
+.sheet-handle-on-accent::before {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* ─── Accent button ───────────────────────────────── */
+
+.btn-accent {
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(47, 93, 80, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-accent:active {
+  transform: scale(0.98) !important;
+  box-shadow: 0 1px 4px rgba(47, 93, 80, 0.25);
+}
+
+html.dark .btn-accent {
+  box-shadow: 0 2px 8px rgba(95, 165, 143, 0.2);
+}
+
+/* ─── Press feedback ──────────────────────────────── */
+
+button, a, label[for], label:has(input) {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+button:active, a:active, label:active {
+  opacity: 0.75;
+  transform: scale(0.98);
+}
+
+/* ─── Scrollbar hide ──────────────────────────────── */
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Dark mode text overrides ────────────────────── */
+
+html.dark .text-white { color: var(--color-text) !important; }
+html.dark .text-white\/30 { color: var(--color-text-dim) !important; }
+html.dark .text-white\/55 { color: var(--color-text-secondary) !important; }
+html.dark .text-white\/60 { color: var(--color-text-secondary) !important; }
+html.dark .text-white\/70 { color: var(--color-text-tertiary) !important; }
+html.dark .text-white\/80 { color: var(--color-text) !important; }
