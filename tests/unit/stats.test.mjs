@@ -73,3 +73,11 @@ await test('kleur raden uit de naam', () => {
   assert.equal(guessColour("Spijkerbroek levi's"), 'blauw')
   assert.equal(guessColour('Vans Mte Crosspath Xc'), null)
 })
+
+await test('byPurchaseYear vult lege jaren tot het huidige jaar en geeft de stukken mee', () => {
+  const y = byPurchaseYear(rows, { tot: '2026' })
+  assert.deepEqual(y.map(r => [r.year, r.bought]), [['2023', 2], ['2024', 1], ['2025', 0], ['2026', 0]])
+  assert.deepEqual(y[0].rows.map(r => r.item.id), ['c', 'b']) // duurste eerst
+  assert.equal(y[3].avgWears, 0)
+  assert.equal(y[3].spend, 0)
+})

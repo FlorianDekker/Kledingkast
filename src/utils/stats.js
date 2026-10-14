@@ -101,14 +101,23 @@ export function byCategory(rows) {
   })
 }
 
-/** Per aankoopjaar, zoals het tabblad "Jaren". */
-export function byPurchaseYear(rows) {
+/**
+ * Per aankoopjaar, zoals het tabblad "Jaren". Jaren zonder aankopen tussen het
+ * eerste jaar en `tot` (bijv. het huidige jaar) staan erin met 0. `rows` per
+ * jaar zijn de gekochte stukken, duurste eerst.
+ */
+export function byPurchaseYear(rows, { tot } = {}) {
   const years = new Map()
   for (const r of rows) {
     const y = r.item.aankoopdatum?.slice(0, 4)
     if (!y) continue
     if (!years.has(y)) years.set(y, [])
     years.get(y).push(r)
+  }
+  if (years.size) {
+    const keys = [...years.keys()].map(Number)
+    const last = Math.max(...keys, tot ? Number(tot) : -Infinity)
+    for (let y = Math.min(...keys); y <= last; y++) if (!years.has(String(y))) years.set(String(y), [])
   }
   return [...years.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([year, rs]) => {
     const priced = rs.filter(r => r.item.prijs != null)
@@ -118,10 +127,11 @@ export function byPurchaseYear(rows) {
       year,
       bought: rs.length,
       wears,
-      avgWears: Math.round(wears / rs.length),
+      avgWears: rs.length ? Math.round(wears / rs.length) : 0,
       spend: round2(spend),
       avgPrice: priced.length ? round2(spend / priced.length) : null,
       medianCpw: median(rs.map(r => r.cpw)),
+      rows: [...rs].sort((a, b) => (b.item.prijs ?? -1) - (a.item.prijs ?? -1)),
     }
   })
 }

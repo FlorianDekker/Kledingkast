@@ -69,6 +69,7 @@ export function StatsPage() {
   const [range, setRange] = useState('36')
   const [catMetric, setCatMetric] = useState('avgWears')
   const [yearMetric, setYearMetric] = useState('spend')
+  const [jaar, setJaar] = useState(null)
   const [openId, setOpenId] = useState(null)
   const today = todayStr()
 
@@ -80,7 +81,7 @@ export function StatsPage() {
     return {
       ov: overview(rows, wears),
       cats: byCategory(rows),
-      years: byPurchaseYear(rows),
+      years: byPurchaseYear(rows, { tot: today.slice(0, 4) }),
       perMonth: cut(outfitsPerMonth(wears)),
       cpwTime: cut(medianCpwOverTime(items, wears)),
       colours: wearsByColour(rows).filter(c => c.count > 0),
@@ -152,14 +153,24 @@ export function StatsPage() {
 
         <Card title="Per aankoopjaar">
           <MetricChips metrics={YEAR_METRICS} value={yearMetric} onChange={setYearMetric} />
-          <LabelBars labels={data.years.map(y => y.year)} values={data.years.map(y => y[yearMetric])} format={v => (v == null ? '–' : ym.format(v))} />
+          <LabelBars
+            labels={data.years.map(y => y.year)}
+            values={data.years.map(y => y[yearMetric])}
+            format={v => (v == null ? '–' : ym.format(v))}
+            onPick={i => setJaar(j => (j === data.years[i].year ? null : data.years[i].year))}
+            selected={jaar == null ? null : data.years.findIndex(y => y.year === jaar)}
+          />
+          {jaar == null
+            ? <div className="text-xs text-muted mt-2">Tik op een jaar om te zien wat je toen kocht.</div>
+            : <JaarLijst jaar={data.years.find(y => y.year === jaar)} photoUrls={photoUrls} onOpen={setOpenId} onClose={() => setJaar(null)} />}
           <table className="w-full text-xs mt-3 tabular-nums">
             <thead className="text-muted">
               <tr><th className="text-left font-medium py-1">Jaar</th><th className="text-right font-medium">Stuks</th><th className="text-right font-medium">Uitgegeven</th><th className="text-right font-medium">Gem. ×</th><th className="text-right font-medium">Per keer</th></tr>
             </thead>
             <tbody>
               {data.years.map(y => (
-                <tr key={y.year} style={{ borderTop: '1px solid var(--color-border)' }}>
+                <tr key={y.year} onClick={() => setJaar(j => (j === y.year ? null : y.year))}
+                  style={{ borderTop: '1px solid var(--color-border)', fontWeight: jaar === y.year ? 600 : undefined }}>
                   <td className="py-1.5">{y.year}</td><td className="text-right">{y.bought}</td><td className="text-right">{euro0(y.spend)}</td>
                   <td className="text-right">{y.avgWears}</td><td className="text-right">{euro(y.medianCpw)}</td>
                 </tr>
@@ -197,6 +208,33 @@ function TipList({ title, rows, photoUrls, onOpen, detail }) {
           <ItemThumb item={r.item} url={photoUrls.get(r.item.id)} size={30} rounded="rounded-lg" />
           <span className="text-sm flex-1 min-w-0 truncate">{r.item.naam}</span>
           <span className="text-xs text-muted shrink-0">{detail(r)}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function JaarLijst({ jaar, photoUrls, onOpen, onClose }) {
+  if (!jaar) return null
+  return (
+    <div className="mt-3 rounded-2xl p-3 animate-fade-in" style={{ background: 'var(--color-surface-2)' }}>
+      <div className="flex items-baseline justify-between mb-1">
+        <div className="font-display text-lg">{jaar.year}</div>
+        <button onClick={onClose} className="text-xs text-muted">Sluiten</button>
+      </div>
+      <div className="text-xs text-muted mb-2">
+        {jaar.bought ? `${jaar.bought} ${jaar.bought === 1 ? 'stuk' : 'stukken'} · samen ${euro0(jaar.spend)}` : `Niets gekocht in ${jaar.year}`}
+      </div>
+      {jaar.rows.map(r => (
+        <button key={r.item.id} onClick={() => onOpen(r.item.id)} className="w-full flex items-center gap-2.5 py-1.5 text-left">
+          <ItemThumb item={r.item} url={photoUrls.get(r.item.id)} size={34} rounded="rounded-lg" />
+          <div className="flex-1 min-w-0">
+            <div className="text-sm truncate" style={{ opacity: r.item.uitKast ? 0.55 : 1 }}>{r.item.naam}</div>
+            <div className="text-[11px] text-muted truncate">
+              {r.count}× gedragen{r.cpw != null ? ` · ${euro(r.cpw)} per keer` : ''}{r.item.uitKast ? ' · uit de kast' : ''}
+            </div>
+          </div>
+          <span className="text-sm tabular-nums shrink-0">{r.item.prijs != null ? euro0(r.item.prijs) : '–'}</span>
         </button>
       ))}
     </div>

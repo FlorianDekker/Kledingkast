@@ -72,11 +72,20 @@ export function MonthLine({ data, valueKey, format = v => String(v), height = 17
 }
 
 /** Liggende staven met labels op de as; `colors` optioneel per staaf. */
-export function LabelBars({ labels, values, colors, format = v => String(v), height }) {
+/**
+ * `onPick(index)` maakt de staven aantikbaar; `selected` (index) licht op en
+ * dimt de rest.
+ */
+export function LabelBars({ labels, values, colors, format = v => String(v), height, onPick, selected = null }) {
   const opts = baseOptions({ yFormat: format, horizontal: true })
   opts.interaction = { mode: 'nearest', axis: 'y', intersect: false }
   opts.plugins.tooltip.callbacks = { label: i => format(i.raw) }
-  const c = accent()
+  if (onPick) {
+    opts.onClick = (_, els) => { if (els[0]) onPick(els[0].index) }
+    opts.onHover = (e, els) => { if (e.native?.target) e.native.target.style.cursor = els.length ? 'pointer' : 'default' }
+  }
+  const base = accent()
+  const c = selected == null || colors ? base : labels.map((_, i) => (i === selected ? base : `${base}55`))
   return (
     <div style={{ height: height ?? Math.max(120, labels.length * 30 + 30) }}>
       <Bar
