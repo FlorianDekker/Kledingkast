@@ -52,6 +52,12 @@ export function parseAmount(s) {
 const DAGEN_LANG = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag']
 const MAANDEN_LANG = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
 
+/** '2022-02' → 'februari 2022' */
+export function longMonthLabel(month) {
+  const [y, m] = month.split('-').map(Number)
+  return `${MAANDEN_LANG[m - 1]} ${y}`
+}
+
 /** '2026-10-14' → 'woensdag 14 oktober' (met jaar als het niet dit jaar is). */
 export function longDateLabel(datum) {
   const { y, m, d, wd } = parts(datum)

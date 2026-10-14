@@ -4,9 +4,9 @@ Log wat je draagt en zie wat je kleding je per keer kost. Opvolger van een Googl
 
 Live: https://floriandekker.github.io/Kledingkast/ (op de iPhone: Delen → Zet op beginscherm).
 
-- **Vandaag**: outfit loggen per categorie, "zelfde als laatst", eerdere dagen bewerken.
+- **Vandaag**: outfit kiezen op de pop, "Verras me" (geschud uit je kast), "zelfde als laatst", eerdere dagen bewerken.
 - **Kast**: stukken met foto, prijs, kleur, uit de kast/verkocht; samenvoegen van dubbele stukken.
-- **Statistieken**: cost per wear, per soort, per aankoopjaar, per kleur, over tijd, plus suggesties.
+- **Inzicht**: tabbladen Overzicht, Kalender, Combinaties, Records, Weekdag en Verdeling; bijna alles aantikbaar (stukken, dagen, outfits).
 - **Meer**: import van de Google Sheet (.xlsx, herhaalbaar), basispop, back-up als JSON, instellingen.
 - **Aankleedpop**: outfits op een etalagepop, met per stuk een laag uit een magenta-pop-afbeelding van ChatGPT. Zie [docs/POP.md](docs/POP.md).
 

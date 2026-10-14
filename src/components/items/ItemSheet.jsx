@@ -13,7 +13,8 @@ import { itemStats, itemPerMonth, todayStr, addDays } from '../../utils/stats'
 import { euro, dateLabel, agoLabel, monthLabel, parseAmount } from '../../utils/format'
 import { resizeImage } from '../../utils/image'
 import { takeFile } from '../../utils/fileInput'
-import { useItems, usePhotoUrls, useSetting } from '../../hooks/useData'
+import { useItems, usePhotoUrls, useSetting, useWears } from '../../hooks/useData'
+import { coWorn } from '../../utils/insights'
 
 const inputCls = 'w-full px-3 py-2.5 rounded-xl text-sm outline-none'
 const inputStyle = { background: 'var(--color-surface-2)', color: 'var(--color-text)' }
@@ -67,6 +68,8 @@ function ItemSheetInner({ onClose, itemId, preset, onSaved }) {
   const [newPhoto, setNewPhoto] = useState(null)
   const [error, setError] = useState(null)
   const [merging, setMerging] = useState(false)
+  const [comboId, setComboId] = useState(null)
+  const allWears = useWears()
   const kleurAangeraakt = useRef(false)
   const fileRef = useRef(null)
 
@@ -292,6 +295,26 @@ function ItemSheetInner({ onClose, itemId, preset, onSaved }) {
             </div>
           )}
 
+          {!isNew && allWears && (() => {
+            const combi = coWorn(itemId, allWears).map(c => ({ ...c, item: allItems?.find(i => i.id === c.itemId) })).filter(c => c.item)
+            if (!combi.length) return null
+            return (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-1.5">Vaak gecombineerd met</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {combi.map(c => (
+                    <button key={c.itemId} onClick={() => setComboId(c.itemId)} className="flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full text-xs"
+                      style={{ background: 'var(--color-surface-2)' }}>
+                      <ItemThumb item={c.item} url={photoUrls.get(c.itemId)} size={22} rounded="rounded-full" />
+                      <span className="max-w-[9rem] truncate">{c.item.naam}</span>
+                      <span className="text-muted">{c.count}×</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {!isNew && (
             <div className="flex gap-2 pb-2">
               <button onClick={() => setMerging(true)} className="flex-1 py-2.5 rounded-xl text-sm font-medium" style={{ background: 'var(--color-surface-2)' }}>
@@ -305,6 +328,7 @@ function ItemSheetInner({ onClose, itemId, preset, onSaved }) {
         </div>
       </Sheet>
 
+      <ItemSheet open={!!comboId} itemId={comboId} onClose={() => setComboId(null)} />
       <ItemPickerSheet
         open={merging}
         onClose={() => setMerging(false)}

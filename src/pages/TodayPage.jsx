@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ItemSheet } from '../components/items/ItemSheet'
 import { ItemThumb } from '../components/items/ItemThumb'
 import { OutfitDoll } from '../components/items/OutfitDoll'
@@ -12,14 +12,24 @@ import { CATEGORIES } from '../constants/categories'
 import { COLOUR_BY_KEY } from '../utils/colors'
 import { recentCounts, todayStr, addDays } from '../utils/stats'
 import { agoLabel, longDateLabel } from '../utils/format'
+import { dressMe } from '../utils/insights'
 
 export function TodayPage() {
   const { items, wears, rows } = useItemStats()
   const photoUrls = usePhotoUrls()
   const layers = useLayers()
   const today = todayStr()
-  const [datum, setDatum] = useState(today)
-  const [selected, setSelected] = useState(() => new Set())
+  // Vanuit Inzicht: ?datum=… (naar een dag) of ?outfit=id,id (trek dit aan)
+  const [params, setParams] = useSearchParams()
+  const [datum, setDatum] = useState(() => {
+    const d = params.get('datum')
+    return d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today ? d : today
+  })
+  const [selected, setSelected] = useState(() => new Set((params.get('outfit') ?? '').split(',').filter(Boolean)))
+  const [geschud, setGeschud] = useState(() => new Set()) // door "Verras me" gekozen, dus niet vast
+  useEffect(() => {
+    if (params.has('datum') || params.has('outfit')) setParams({}, { replace: true })
+  }, [params, setParams])
   const [editingId, setEditingId] = useState(null)
   const [tab, setTab] = useState(CATEGORIES[0].key)
   const [shown, setShown] = useState(0)
@@ -79,11 +89,26 @@ export function TodayPage() {
   const hasDoll = !!layers.get(BASE_ID)
   const offDoll = stageItems.filter(it => !layers.get(it.id)).length
 
-  const toggle = id => setSelected(s => {
-    const n = new Set(s)
-    if (n.has(id)) n.delete(id); else n.add(id)
-    return n
-  })
+  const toggle = id => {
+    setSelected(s => {
+      const n = new Set(s)
+      if (n.has(id)) n.delete(id); else n.add(id)
+      return n
+    })
+    // Zelf aangetikt of weggehaald: telt niet meer als geschud
+    setGeschud(g => { const n = new Set(g); n.delete(id); return n })
+  }
+
+  // Whering's "Dress Me": wat je zelf koos blijft staan, de rest wordt geschud
+  function verras() {
+    const vast = {}
+    for (const it of chosen) if (!geschud.has(it.id) && !vast[it.categorie]) vast[it.categorie] = it.id
+    const opPop = new Set([...layers.keys()])
+    const ids = dressMe(items, wears, { today, vast, opPop })
+    const vasteIds = new Set(Object.values(vast))
+    setSelected(new Set(ids))
+    setGeschud(new Set(ids.filter(id => !vasteIds.has(id))))
+  }
 
   const changeDay = d => {
     if (d > today) return
@@ -103,6 +128,7 @@ export function TodayPage() {
     const wasEditing = !!editingId
     await saveWear({ id: editingId ?? undefined, datum, itemIds: [...selected] })
     setSelected(new Set())
+    setGeschud(new Set())
     setEditingId(null)
     setShown(wasEditing ? viewIndex : dayWears.length)
     say(wasEditing ? 'Outfit bijgewerkt' : 'Outfit opgeslagen')
@@ -122,6 +148,7 @@ export function TodayPage() {
   function cancel() {
     setEditingId(null)
     setSelected(new Set())
+    setGeschud(new Set())
   }
 
   const dayTitle = datum === today ? 'Vandaag' : datum === addDays(today, -1) ? 'Gisteren' : 'Terugblik'
@@ -156,6 +183,9 @@ export function TodayPage() {
                   <StageButton onClick={() => edit(viewWear)}>Bewerk</StageButton>
                   <StageButton onClick={() => remove(viewWear)}>Verwijder</StageButton>
                 </>
+              )}
+              {!viewWear && !editingId && (
+                <StageButton onClick={verras}>{geschud.size ? '↻ Nog eens' : '✦ Verras me'}</StageButton>
               )}
               {!composing && !viewWear && lastOutfit && (
                 <StageButton onClick={() => setSelected(new Set(lastOutfit.itemIds.filter(id => byId.get(id) && !byId.get(id).uitKast)))}>
