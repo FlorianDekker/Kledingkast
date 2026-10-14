@@ -53,8 +53,17 @@ async function run() {
       if (done.has(key)) continue
       const itemId = byName.get(normName(l.naam))
       if (!itemId) continue // stuk (nog) niet in de kast; volgende keer opnieuw proberen
-      if (!(await db.layers.get(itemId))) {
-        await setLayer(itemId, { blob: await blob(`lagen/${l.file}`), x: l.x, y: l.y, w: l.w, h: l.h, width: l.width, height: l.height })
+      const cur = await db.layers.get(itemId)
+      // Had je een eerdere meegeleverde versie zelf weggehaald? Dan blijft hij weg.
+      const eerderToegepast = [...done].some(k => k.startsWith(`laag:${normName(l.naam)}:`))
+      if (!cur && eerderToegepast) { done.add(key); continue }
+      // Een eerdere meegeleverde versie mag vervangen worden; een eigen upload nooit.
+      const ouder = cur && (
+        cur.bron?.startsWith(`laag:${normName(l.naam)}:`) ||
+        (l.vervangt ?? []).some(v => v.x === cur.x && v.y === cur.y && v.w === cur.w && v.h === cur.h)
+      )
+      if (!cur || ouder) {
+        await setLayer(itemId, { blob: await blob(`lagen/${l.file}`), x: l.x, y: l.y, w: l.w, h: l.h, width: l.width, height: l.height, bron: key })
       }
       done.add(key)
     }

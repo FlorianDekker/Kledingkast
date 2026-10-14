@@ -24,6 +24,26 @@ const MIN_ISLAND_SHARE = 0.0003
 /** Hoe "magenta" een pixel is, 0..1. */
 const magentaness = (r, g, b) => Math.min(1, Math.max(0, (Math.min(r, b) - g - MAG_LO) / (MAG_HI - MAG_LO)))
 
+/**
+ * Tinten van een ingetekend ruitjespatroon, geleerd van de rand: ChatGPT tekent
+ * dat zuiver grijs (r = g = b) in twee tinten. Geeft { lo, hi } of null als de
+ * rand niet overwegend zuiver grijs is (dan geen ruitjes, maar iets anders).
+ */
+function checkerTones(data, w, h) {
+  const lums = []
+  let n = 0
+  const take = i => {
+    n++
+    const r = data[i], g = data[i + 1], b = data[i + 2]
+    if (Math.max(r, g, b) - Math.min(r, g, b) <= 2) lums.push((r + g + b) / 3)
+  }
+  for (let x = 0; x < w; x += 2) { take(x * 4); take(((h - 1) * w + x) * 4) }
+  for (let y = 0; y < h; y += 2) { take((y * w) * 4); take((y * w + w - 1) * 4) }
+  if (lums.length < n * 0.8) return null
+  lums.sort((a, b) => a - b)
+  return { lo: lums[Math.floor(lums.length * 0.02)], hi: lums[Math.floor(lums.length * 0.98)] }
+}
+
 /** Mediaan van de randpixels (voor de achtergrondkleur). */
 function borderStats(data, w, h) {
   const lums = []
@@ -69,10 +89,20 @@ export function extractLayer(src, width, height) {
   if (border.transparentShare < 0.5 && border.medianLum != null) {
     const light = border.medianLum >= 128
     background = light ? 'licht weggeveegd' : 'donker weggeveegd'
+    // Ruitjes zijn zuiver grijs binnen een smal bereik; dan vegen we strak, zodat
+    // een wit kledingstuk met ook maar een zweem kleur blijft staan.
+    const tones = light ? checkerTones(src, width, height) : null
+    if (tones) background = 'ruitjes weggeveegd'
     const isBg = i => {
       const r = src[i], g = src[i + 1], b = src[i + 2]
       const sat = Math.max(r, g, b) - Math.min(r, g, b)
       const lum = (r + g + b) / 3
+      if (tones) {
+        if (sat <= 2 && lum >= tones.lo - 3 && lum <= tones.hi + 3) return true
+        // Overgang pop → ruitjes: magenta gemengd met lichtgrijs (rood ≈ blauw, licht, groen lager)
+        const rb = Math.min(r, b)
+        return Math.abs(r - b) <= 10 && rb >= tones.lo - 12 && g < rb - 4
+      }
       return sat < 28 && (light ? lum > 170 : lum < 60)
     }
     const seen = new Uint8Array(n)
@@ -85,6 +115,7 @@ export function extractLayer(src, width, height) {
       const i = p * 4
       // Niet dóór de pop heen vegen: dan zou een wit shirt via de pop
       // bereikbaar worden. Alleen over achtergrond en al-doorzichtige pixels.
+      // Niet via de pop vegen: dan loopt het door tot in een witte kraag.
       if (!(src[i + 3] < ALPHA_MIN || isBg(i))) continue
       out[i + 3] = 0
       const x = p % width
@@ -94,6 +125,10 @@ export function extractLayer(src, width, height) {
       if (p < n - width) push(p + width)
     }
   }
+
+  // 2b. Bij ingetekende ruitjes blijft langs de buitenrand een lichtgrijs randje
+  //     staan (mengpixels stof/ruitjes). Twee pixels diep weghalen.
+  if (background === 'ruitjes weggeveegd') defringe(out, width, height, 2)
 
   // 3. Bijna-doorzichtig wordt doorzichtig; losse spikkels weg
   for (let i = 3; i < out.length; i += 4) if (out[i] < ALPHA_MIN) out[i] = 0
@@ -121,6 +156,25 @@ export function extractLayer(src, width, height) {
     data.set(out.subarray(from, from + w * 4), y * w * 4)
   }
   return { data, x: x0, y: y0, w, h, width, height, coverage: covered / n, background }
+}
+
+/** Lichte, (bijna) grijze pixels die aan doorzichtig grenzen weghalen, `passes` keer. */
+function defringe(data, width, height, passes) {
+  for (let pass = 0; pass < passes; pass++) {
+    const remove = []
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4
+        if (data[i + 3] === 0) continue
+        const r = data[i], g = data[i + 1], b = data[i + 2]
+        if (Math.max(r, g, b) - Math.min(r, g, b) > 6 || (r + g + b) / 3 < 150) continue
+        const edge = (x > 0 && data[i - 1] === 0) || (x < width - 1 && data[i + 7] === 0) ||
+          (y > 0 && data[i - width * 4 + 3] === 0) || (y < height - 1 && data[i + width * 4 + 3] === 0)
+        if (edge) remove.push(i + 3)
+      }
+    }
+    for (const a of remove) data[a] = 0
+  }
 }
 
 /** Verwijdert aaneengesloten stukjes kleiner dan MIN_ISLAND_SHARE van het canvas. */
@@ -165,4 +219,40 @@ export function greyMannequin(src) {
     out[i] = out[i + 1] = out[i + 2] = v
   }
   return out
+}
+
+/**
+ * Een laag nabewerken als ChatGPT er meer op zette dan het stuk (bijv. een
+ * broek onder een shirt). `keep(x, y, r, g, b)` krijgt canvas-coördinaten en
+ * zegt of een pixel blijft. Daarna weer spikkels weg en opnieuw bijsnijden.
+ */
+export function cleanLayer(L, keep) {
+  const { width, height } = L
+  const full = new Uint8ClampedArray(width * height * 4)
+  for (let y = 0; y < L.h; y++) {
+    for (let x = 0; x < L.w; x++) {
+      const s = (y * L.w + x) * 4
+      const d = ((L.y + y) * width + (L.x + x)) * 4
+      if (L.data[s + 3] && keep(L.x + x, L.y + y, L.data[s], L.data[s + 1], L.data[s + 2])) full.set(L.data.subarray(s, s + 4), d)
+    }
+  }
+  removeIslands(full, width, height)
+  let x0 = width, y0 = height, x1 = -1, y1 = -1, covered = 0
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    if (full[(y * width + x) * 4 + 3] > 0) {
+      covered++
+      if (x < x0) x0 = x
+      if (x > x1) x1 = x
+      if (y < y0) y0 = y
+      if (y > y1) y1 = y
+    }
+  }
+  if (x1 < 0) return { ...L, data: new Uint8ClampedArray(0), x: 0, y: 0, w: 0, h: 0, coverage: 0 }
+  const w = x1 - x0 + 1, h = y1 - y0 + 1
+  const data = new Uint8ClampedArray(w * h * 4)
+  for (let y = 0; y < h; y++) {
+    const from = ((y0 + y) * width + x0) * 4
+    data.set(full.subarray(from, from + w * 4), y * w * 4)
+  }
+  return { ...L, data, x: x0, y: y0, w, h, coverage: covered / (width * height) }
 }

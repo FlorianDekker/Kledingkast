@@ -21,14 +21,127 @@
       "height": 1536
     },
     {
-      "naam": "Vans Mte Crosspath Xc",
-      "file": "vans-mte-crosspath-xc.png",
-      "x": 308,
-      "y": 1353,
-      "w": 406,
-      "h": 155,
+      "naam": "Wit t-shirt uniqlo",
+      "file": "wit-t-shirt-uniqlo-377c5c28.png",
+      "x": 262,
+      "y": 257,
+      "w": 502,
+      "h": 531,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "vervangt": [
+        {
+          "file": "wit-t-shirt-uniqlo.png",
+          "x": 262,
+          "y": 257,
+          "w": 502,
+          "h": 531
+        }
+      ]
+    },
+    {
+      "naam": "Grijs jas pak Vanda Tailors",
+      "file": "grijs-jas-pak-vanda-tailors-946685fe.png",
+      "x": 271,
+      "y": 238,
+      "w": 485,
+      "h": 573,
+      "width": 1024,
+      "height": 1536,
+      "vervangt": [
+        {
+          "file": "grijs-jas-pak-vanda-tailors.png",
+          "x": 267,
+          "y": 234,
+          "w": 491,
+          "h": 577
+        },
+        {
+          "file": "grijs-jas-pak-vanda-tailors-15fd74fa.png",
+          "x": 267,
+          "y": 234,
+          "w": 491,
+          "h": 577
+        }
+      ]
+    },
+    {
+      "naam": "Grijze pantalon pak Vanda Tailors",
+      "file": "grijze-pantalon-pak-vanda-tailors-e952123a.png",
+      "x": 364,
+      "y": 651,
+      "w": 304,
+      "h": 786,
+      "width": 1024,
+      "height": 1536,
+      "vervangt": [
+        {
+          "file": "grijze-pantalon-pak-vanda-tailors.png",
+          "x": 363,
+          "y": 651,
+          "w": 306,
+          "h": 786
+        },
+        {
+          "file": "grijze-pantalon-pak-vanda-tailors-e3759057.png",
+          "x": 363,
+          "y": 651,
+          "w": 306,
+          "h": 786
+        }
+      ]
+    },
+    {
+      "naam": "Wit overhemd Vanda Tailors",
+      "file": "wit-overhemd-vanda-tailors-c04b9326.png",
+      "x": 276,
+      "y": 236,
+      "w": 477,
+      "h": 568,
+      "width": 1024,
+      "height": 1536,
+      "vervangt": [
+        {
+          "file": "wit-overhemd-vanda-tailors.png",
+          "x": 269,
+          "y": 235,
+          "w": 485,
+          "h": 581
+        },
+        {
+          "file": "wit-overhemd-vanda-tailors-42bb2255.png",
+          "x": 269,
+          "y": 235,
+          "w": 485,
+          "h": 581
+        }
+      ]
+    },
+    {
+      "naam": "Vans Mte Crosspath Xc",
+      "file": "vans-mte-crosspath-xc-3d4eb138.png",
+      "x": 308,
+      "y": 1371,
+      "w": 406,
+      "h": 137,
+      "width": 1024,
+      "height": 1536,
+      "vervangt": [
+        {
+          "file": "vans-mte-crosspath-xc.png",
+          "x": 308,
+          "y": 1353,
+          "w": 406,
+          "h": 155
+        },
+        {
+          "file": "vans-mte-crosspath-xc-24e84063.png",
+          "x": 308,
+          "y": 1366,
+          "w": 407,
+          "h": 143
+        }
+      ]
     }
   ],
   "ingetrokken": [

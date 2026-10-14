@@ -40,7 +40,7 @@ await test('ingetekend ruitjespatroon wordt weggeveegd, gekleurd shirt blijft', 
   const d = scene(checker)
   rect(d, 15, 20, 45, 50, [170, 195, 230, 255]) // lichtblauw: licht, maar niet grijs
   const L = extractLayer(d, W, H)
-  assert.equal(L.background, 'licht weggeveegd')
+  assert.equal(L.background, 'ruitjes weggeveegd')
   assert.deepEqual([L.x, L.y, L.x + L.w, L.y + L.h], [15, 20, 45, 88])
   assert.equal(alphaAt(L, 16, 30), 255)  // rand van het shirt, naast de achtergrond
   assert.equal(alphaAt(L, 30, 30), 255)
@@ -73,4 +73,22 @@ await test('greyMannequin maakt magenta grijs en laat de rest staan', () => {
   const g = greyMannequin(d)
   assert.equal(g[0], g[1]); assert.equal(g[1], g[2])
   assert.deepEqual([...g.slice(4)], [250, 250, 250, 255])
+})
+
+await test('ruitjes met zuiver grijze tinten: licht getint wit shirt blijft staan', () => {
+  const checker = (x, y) => ((x >> 2) + (y >> 2)) % 2 ? [254, 254, 254, 255] : [237, 237, 237, 255]
+  const d = scene(checker)
+  rect(d, 15, 20, 45, 50, [246, 245, 251, 255]) // wit met een zweem blauw, zoals een echt overhemd
+  const L = extractLayer(d, W, H)
+  assert.equal(L.background, 'ruitjes weggeveegd')
+  // Het randje-weghalen mag hooguit 2 px van een bijna-grijs wit stuk afschaven
+  assert.ok(L.x <= 17 && L.y <= 22 && L.x + L.w >= 43, `laag ${L.x},${L.y} ${L.w}×${L.h}`)
+  assert.equal(alphaAt(L, 18, 30), 255)
+  assert.equal(alphaAt(L, 30, 35), 255)
+})
+
+await test('cleanLayer knipt de broek onder een shirt weg', async () => {
+  const { cleanLayer } = await import('../../src/utils/layerKey.js')
+  const L = cleanLayer(extractLayer(scene(() => [0, 0, 0, 0]), W, H), (x, y) => y < 60)
+  assert.deepEqual([L.x, L.y, L.x + L.w, L.y + L.h], [15, 20, 45, 50])
 })
