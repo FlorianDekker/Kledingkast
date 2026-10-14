@@ -30,8 +30,9 @@ export async function exportBackup() {
     photos: await Promise.all(photos.map(async p => ({
       itemId: p.itemId, type: p.blob.type || 'image/jpeg', data: await blobToBase64(p.blob),
     }))),
-    layers: await Promise.all(layers.map(async ({ blob, ...meta }) => ({
+    layers: await Promise.all(layers.map(async ({ blob, maskBlob, ...meta }) => ({
       ...meta, type: blob.type || 'image/png', data: await blobToBase64(blob),
+      ...(maskBlob ? { maskData: await blobToBase64(maskBlob) } : {}),
     }))),
   }
 }
@@ -54,7 +55,9 @@ export async function restoreBackup(json) {
     await db.aliases.bulkPut(b.aliases ?? [])
     await db.settings.bulkPut(b.settings ?? [])
     await db.photos.bulkPut((b.photos ?? []).map(p => ({ itemId: p.itemId, blob: base64ToBlob(p.data, p.type) })))
-    await db.layers.bulkPut((b.layers ?? []).map(({ data, type, ...meta }) => ({ ...meta, blob: base64ToBlob(data, type) })))
+    await db.layers.bulkPut((b.layers ?? []).map(({ data, type, maskData, ...meta }) => ({
+      ...meta, blob: base64ToBlob(data, type), ...(maskData ? { maskBlob: base64ToBlob(maskData, 'image/png') } : {}),
+    })))
   })
   return { items: b.items.length, wears: b.wears.length, photos: (b.photos ?? []).length, layers: (b.layers ?? []).length }
 }

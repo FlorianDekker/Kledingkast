@@ -63,7 +63,11 @@ async function run() {
         (l.vervangt ?? []).some(v => v.x === cur.x && v.y === cur.y && v.w === cur.w && v.h === cur.h)
       )
       if (!cur || ouder) {
-        await setLayer(itemId, { blob: await blob(`lagen/${l.file}`), x: l.x, y: l.y, w: l.w, h: l.h, width: l.width, height: l.height, bron: key })
+        const mask = l.mask ? { maskBlob: await blob(`lagen/${l.mask.file}`), mx: l.mask.x, my: l.mask.y, mw: l.mask.w, mh: l.mask.h } : {}
+        await setLayer(itemId, { blob: await blob(`lagen/${l.file}`), x: l.x, y: l.y, w: l.w, h: l.h, width: l.width, height: l.height, ...mask, bron: key })
+        // Standaard "ingestopt" (bijv. een pakoverhemd), tenzij je het zelf al instelde
+        const item = items.find(i => i.id === itemId)
+        if (l.ingestopt != null && item && item.ingestopt == null) await db.items.update(itemId, { ingestopt: l.ingestopt })
       }
       done.add(key)
     }

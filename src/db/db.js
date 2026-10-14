@@ -12,6 +12,8 @@ import Dexie from 'dexie'
 // photos  { itemId, blob } los van items, zodat lijsten licht blijven
 // layers  het stuk zoals het op de pop zit: { itemId, blob (bijgesneden PNG), x, y, w, h,
 //         width, height } met (x, y, w, h) de plek op het popcanvas (width × height).
+//         Optioneel maskBlob + (mx, my, mw, mh): waar in de bron achtergrond was; dat
+//         wordt bij het stapelen van lagere lagen gewist. bron: meegeleverde versie.
 //         De basispop zelf staat er onder itemId BASE_ID.
 // settings { key, value }
 export const db = new Dexie('kledingkast')

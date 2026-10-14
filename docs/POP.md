@@ -50,3 +50,9 @@ Een nieuwe afbeelding meeleveren:
 ```
 node scripts/maak-laag.mjs "<magenta-afbeelding.png>" "<naam zoals in de kast>"
 ```
+
+Elke laag in `lagen.json` onthoudt zijn `bronbestand` (in Downloads) en `opties`; `node scripts/maak-laag.mjs --alles` knipt alles opnieuw als het knippen verbeterd is. Opties voor als ChatGPT meer tekende dan het stuk: `--knip-onder y`, `--knip-boven y`, `--donker-weg-onder y`. Met `"ingestopt": true` in een regel zet de app dat stuk standaard op ingestopt.
+
+## Wismasker
+
+Elke laag heeft een masker van waar in zijn bronafbeelding achtergrond was (rond het stuk, plus 24 px marge). Bij het stapelen wist de app daarmee eerst alles van lagere lagen en de basispop, en tekent dan het stuk. Zo piept een slanke broek geen grijze kuit van de basispop meer, en een overhemdmouw niet naast een colbert. Nodig omdat ChatGPT elk stuk op een iets ander lichaam tekent. `OutfitDoll` tekent daarom op een canvas.

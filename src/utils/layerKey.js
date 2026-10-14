@@ -70,6 +70,10 @@ function borderStats(data, w, h) {
 export function extractLayer(src, width, height) {
   const n = width * height
   const out = new Uint8ClampedArray(src)
+  // Achtergrond van deze afbeelding (1) tegenover figuur = pop + kledingstuk (0).
+  // Daarmee wist de app bij het stapelen wat van lagere lagen naast dit stuk uitpiept.
+  const bg = new Uint8Array(n)
+  for (let p = 0; p < n; p++) if (src[p * 4 + 3] < ALPHA_MIN) bg[p] = 1
 
   // 1. Magenta eruit, met de roze weerschijn op randen teruggedrukt
   for (let i = 0; i < out.length; i += 4) {
@@ -113,11 +117,11 @@ export function extractLayer(src, width, height) {
     while (stack.length) {
       const p = stack.pop()
       const i = p * 4
-      // Niet dóór de pop heen vegen: dan zou een wit shirt via de pop
-      // bereikbaar worden. Alleen over achtergrond en al-doorzichtige pixels.
-      // Niet via de pop vegen: dan loopt het door tot in een witte kraag.
+      // Niet dóór de pop heen vegen: dan loopt het via de hals door tot in een
+      // witte kraag. Alleen over achtergrond en al-doorzichtige pixels.
       if (!(src[i + 3] < ALPHA_MIN || isBg(i))) continue
       out[i + 3] = 0
+      bg[p] = 1
       const x = p % width
       if (x > 0) push(p - 1)
       if (x < width - 1) push(p + 1)
@@ -125,6 +129,12 @@ export function extractLayer(src, width, height) {
       if (p < n - width) push(p + width)
     }
   }
+
+  // 2a. Ingesloten stukjes ruitjes (tussen arm en been als de hand de broek
+  //     raakt) bereikt het vegen vanaf de rand niet. Een ingesloten vlak gaat
+  //     alleen weg als het écht ruitjes zijn: beide tinten, om en om. Een witte
+  //     kraag heeft maar één tint en blijft staan.
+  if (background === 'ruitjes weggeveegd') wipeEnclosedChecker(out, src, bg, width, height, checkerTones(src, width, height))
 
   // 2b. Bij ingetekende ruitjes blijft langs de buitenrand een lichtgrijs randje
   //     staan (mengpixels stof/ruitjes). Twee pixels diep weghalen.
@@ -147,7 +157,7 @@ export function extractLayer(src, width, height) {
       }
     }
   }
-  if (x1 < 0) return { data: new Uint8ClampedArray(0), x: 0, y: 0, w: 0, h: 0, width, height, coverage: 0, background }
+  if (x1 < 0) return { data: new Uint8ClampedArray(0), x: 0, y: 0, w: 0, h: 0, width, height, coverage: 0, background, bg }
   const w = x1 - x0 + 1
   const h = y1 - y0 + 1
   const data = new Uint8ClampedArray(w * h * 4)
@@ -155,7 +165,41 @@ export function extractLayer(src, width, height) {
     const from = ((y0 + y) * width + x0) * 4
     data.set(out.subarray(from, from + w * 4), y * w * 4)
   }
-  return { data, x: x0, y: y0, w, h, width, height, coverage: covered / n, background }
+  return { data, x: x0, y: y0, w, h, width, height, coverage: covered / n, background, bg }
+}
+
+function wipeEnclosedChecker(out, src, bg, width, height, tones) {
+  const n = width * height
+  const mid = (tones.lo + tones.hi) / 2
+  const isTone = i => {
+    const r = src[i], g = src[i + 1], b = src[i + 2]
+    const lum = (r + g + b) / 3
+    return Math.max(r, g, b) - Math.min(r, g, b) <= 2 && lum >= tones.lo - 3 && lum <= tones.hi + 3
+  }
+  const seen = new Uint8Array(n)
+  const stack = []
+  const members = []
+  for (let s = 0; s < n; s++) {
+    if (seen[s] || out[s * 4 + 3] === 0 || !isTone(s * 4)) continue
+    members.length = 0
+    let dark = 0
+    seen[s] = 1
+    stack.push(s)
+    while (stack.length) {
+      const p = stack.pop()
+      members.push(p)
+      if ((src[p * 4] + src[p * 4 + 1] + src[p * 4 + 2]) / 3 < mid) dark++
+      const x = p % width
+      const nb = [x > 0 ? p - 1 : -1, x < width - 1 ? p + 1 : -1, p - width, p + width]
+      for (const q of nb) {
+        if (q < 0 || q >= n || seen[q] || out[q * 4 + 3] === 0 || !isTone(q * 4)) continue
+        seen[q] = 1
+        stack.push(q)
+      }
+    }
+    const share = dark / members.length
+    if (members.length >= 200 && share >= 0.15 && share <= 0.85) for (const p of members) { out[p * 4 + 3] = 0; bg[p] = 1 }
+  }
 }
 
 /** Lichte, (bijna) grijze pixels die aan doorzichtig grenzen weghalen, `passes` keer. */
@@ -255,4 +299,27 @@ export function cleanLayer(L, keep) {
     data.set(full.subarray(from, from + w * 4), y * w * 4)
   }
   return { ...L, data, x: x0, y: y0, w, h, coverage: covered / (width * height) }
+}
+
+const MASK_MARGIN = 24
+
+/**
+ * Wismasker van een laag: waar in de bronafbeelding achtergrond was, rond het
+ * stuk (plus een marge). Bij het stapelen wordt alles van lagere lagen onder
+ * dit masker gewist, zodat een basispop of shirt dat op een iets ander lichaam
+ * getekend is niet naast dit stuk uitpiept. Geeft { data, x, y, w, h } of null.
+ */
+export function eraseMask(L) {
+  if (!L.bg || !L.w) return null
+  const { width, height } = L
+  const x = Math.max(0, L.x - MASK_MARGIN), y = Math.max(0, L.y - MASK_MARGIN)
+  const w = Math.min(width, L.x + L.w + MASK_MARGIN) - x
+  const h = Math.min(height, L.y + L.h + MASK_MARGIN) - y
+  const data = new Uint8ClampedArray(w * h * 4)
+  for (let yy = 0; yy < h; yy++) {
+    for (let xx = 0; xx < w; xx++) {
+      if (L.bg[(y + yy) * width + (x + xx)]) data[(yy * w + xx) * 4 + 3] = 255
+    }
+  }
+  return { data, x, y, w, h }
 }

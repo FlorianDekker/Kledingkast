@@ -19,10 +19,14 @@ export function useLayers() {
   const layers = useMemo(() => {
     if (!rows) return null
     const m = new Map()
-    for (const r of rows) m.set(r.itemId, { ...r, url: URL.createObjectURL(r.blob) })
+    for (const r of rows) {
+      m.set(r.itemId, { ...r, url: URL.createObjectURL(r.blob), maskUrl: r.maskBlob ? URL.createObjectURL(r.maskBlob) : null })
+    }
     return m
   }, [rows])
-  useEffect(() => () => { if (layers) for (const l of layers.values()) URL.revokeObjectURL(l.url) }, [layers])
+  useEffect(() => () => {
+    if (layers) for (const l of layers.values()) { URL.revokeObjectURL(l.url); if (l.maskUrl) URL.revokeObjectURL(l.maskUrl) }
+  }, [layers])
   return layers
 }
 

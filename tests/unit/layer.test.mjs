@@ -14,7 +14,8 @@ function image(bg) {
 function rect(d, x0, y0, x1, y1, c) {
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) d.set(c, (y * W + x) * 4)
 }
-const alphaAt = (L, x, y) => L.data[((y - L.y) * L.w + (x - L.x)) * 4 + 3]
+// Buiten de bijgesneden laag is alles doorzichtig
+const alphaAt = (L, x, y) => (x < L.x || y < L.y || x >= L.x + L.w || y >= L.y + L.h ? 0 : L.data[((y - L.y) * L.w + (x - L.x)) * 4 + 3])
 
 // Pop 20..40 breed over de hele hoogte, shirt 15..45 × 20..50 (wit, breder dan de pop),
 // schoen 18..42 × 80..88 (donker).
@@ -91,4 +92,27 @@ await test('cleanLayer knipt de broek onder een shirt weg', async () => {
   const { cleanLayer } = await import('../../src/utils/layerKey.js')
   const L = cleanLayer(extractLayer(scene(() => [0, 0, 0, 0]), W, H), (x, y) => y < 60)
   assert.deepEqual([L.x, L.y, L.x + L.w, L.y + L.h], [15, 20, 45, 50])
+})
+
+await test('ingesloten ruitjes (tussen arm en been) gaan weg, een witte kraag blijft', () => {
+  const checker = (x, y) => ((x >> 2) + (y >> 2)) % 2 ? [254, 254, 254, 255] : [237, 237, 237, 255]
+  const d = scene(checker)
+  // Een magenta ring sluit een vlak ruitjes in (15..45 × 55..75), los van de rand
+  rect(d, 10, 52, 50, 55, MAGENTA); rect(d, 10, 75, 50, 78, MAGENTA); rect(d, 10, 52, 13, 78, MAGENTA); rect(d, 47, 52, 50, 78, MAGENTA)
+  rect(d, 15, 20, 45, 50, [246, 245, 251, 255]) // echt wit shirt heeft een zweem kleur
+  rect(d, 22, 22, 32, 27, [252, 252, 252, 255]) // zuiver witte kraag binnen het shirt: één tint
+  const L = extractLayer(d, W, H)
+  assert.equal(alphaAt(L, 30, 65), 0)    // ingesloten ruitjes weg
+  assert.equal(alphaAt(L, 26, 24), 255)  // kraag blijft
+})
+
+await test('wismasker: achtergrond naast het stuk wordt gewist, de pop niet', async () => {
+  const { eraseMask } = await import('../../src/utils/layerKey.js')
+  const L = extractLayer(scene(() => [0, 0, 0, 0]), W, H)
+  const M = eraseMask(L)
+  const at = (x, y) => M.data[((y - M.y) * M.w + (x - M.x)) * 4 + 3]
+  assert.ok(M.x <= 15 - 10 && M.x + M.w >= 45 + 10, 'marge rond het stuk')
+  assert.equal(at(10, 60), 255)  // naast de pop: achtergrond, dus wissen
+  assert.equal(at(30, 60), 0)    // op de pop (lichaam): niet wissen
+  assert.equal(at(30, 30), 0)    // op het shirt: niet wissen
 })

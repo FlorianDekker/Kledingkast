@@ -1,5 +1,5 @@
 // Browserkant van de aankleedpop: bestand → pixels → laag (PNG) via layerKey.
-import { extractLayer, greyMannequin } from './layerKey'
+import { extractLayer, greyMannequin, eraseMask } from './layerKey'
 
 const MAX_WIDTH = 1024
 
@@ -43,7 +43,7 @@ function toPng(data, width, height) {
 
 /**
  * Magenta-pop-afbeelding → laag om op te slaan.
- * @returns { blob, x, y, w, h, width, height, coverage, background }
+ * @returns { blob, x, y, w, h, width, height, maskBlob?, mx, my, mw, mh, coverage, background }
  */
 export async function makeLayer(file) {
   const { pixels, width, height } = await readPixels(file)
@@ -51,7 +51,9 @@ export async function makeLayer(file) {
   if (!L.w) throw new Error('Er bleef niets over na het wegknippen van de pop. Staat er wel een kledingstuk op een magenta pop?')
   if (L.coverage > 0.5) throw new Error('Er bleef te veel over: is de pop wel fel magenta (#FF00FF)?')
   const blob = await toPng(L.data, L.w, L.h)
-  return { blob, x: L.x, y: L.y, w: L.w, h: L.h, width, height, coverage: L.coverage, background: L.background }
+  const M = eraseMask(L)
+  const mask = M ? { maskBlob: await toPng(M.data, M.w, M.h), mx: M.x, my: M.y, mw: M.w, mh: M.h } : {}
+  return { blob, x: L.x, y: L.y, w: L.w, h: L.h, width, height, ...mask, coverage: L.coverage, background: L.background }
 }
 
 /** Basispop (grijs, of magenta die we grijs maken) → { blob, width, height }. */
