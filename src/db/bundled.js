@@ -30,10 +30,24 @@ async function run() {
   }
 
   const res = await fetch(`${DATA}lagen/lagen.json`, { cache: 'no-cache' })
-  const lagen = res.ok ? (await res.json()).lagen ?? [] : []
+  const manifest = res.ok ? await res.json() : {}
+  const lagen = manifest.lagen ?? []
+  const ingetrokken = manifest.ingetrokken ?? []
+  const items = lagen.length || ingetrokken.length ? await db.items.toArray() : []
+  const byName = new Map(items.map(i => [normName(i.naam), i.id]))
+
+  // Aan het verkeerde stuk meegeleverd? Weghalen, maar alleen als wíj hem daar
+  // hebben gezet en hij nog precies zo staat (een eigen upload blijft staan).
+  for (const l of ingetrokken) {
+    const key = `laag:${normName(l.naam)}:${l.file}`
+    if (!done.has(key) || done.has(`weg:${key}`)) continue
+    const itemId = byName.get(normName(l.naam))
+    const cur = itemId ? await db.layers.get(itemId) : null
+    if (cur && cur.x === l.x && cur.y === l.y && cur.w === l.w && cur.h === l.h) await db.layers.delete(itemId)
+    done.add(`weg:${key}`)
+  }
+
   if (lagen.length) {
-    const items = await db.items.toArray()
-    const byName = new Map(items.map(i => [normName(i.naam), i.id]))
     for (const l of lagen) {
       const key = `laag:${normName(l.naam)}:${l.file}`
       if (done.has(key)) continue

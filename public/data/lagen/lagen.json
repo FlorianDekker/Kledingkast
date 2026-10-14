@@ -11,6 +11,28 @@
       "height": 1536
     },
     {
+      "naam": "Blauwe linnen broek",
+      "file": "blauwe-linnen-broek.png",
+      "x": 340,
+      "y": 652,
+      "w": 343,
+      "h": 788,
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "naam": "Vans Mte Crosspath Xc",
+      "file": "vans-mte-crosspath-xc.png",
+      "x": 308,
+      "y": 1353,
+      "w": 406,
+      "h": 155,
+      "width": 1024,
+      "height": 1536
+    }
+  ],
+  "ingetrokken": [
+    {
       "naam": "Dickies 874 zwart",
       "file": "dickies-874-zwart.png",
       "x": 340,
