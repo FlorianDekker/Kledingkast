@@ -105,7 +105,7 @@ function SheetInner({
             {leading}
             <div className="flex-1 min-w-0">
               {title && (
-                <div className={`text-base font-semibold truncate ${accent ? 'text-white' : ''}`}>{title}</div>
+                <div className={`font-display text-xl leading-tight truncate ${accent ? 'text-white' : ''}`}>{title}</div>
               )}
               {subtitle && (
                 <div className={`text-xs truncate ${accent ? 'text-white/70' : 'text-muted'}`}>{subtitle}</div>

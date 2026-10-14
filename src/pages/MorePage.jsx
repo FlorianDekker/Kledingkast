@@ -20,7 +20,7 @@ const BUNDLED_BASE = `${import.meta.env.BASE_URL}data/basispop.png`
 function Card({ title, children }) {
   return (
     <div className="card mx-4 p-4">
-      <div className="text-sm font-semibold mb-2">{title}</div>
+      <div className="font-display text-xl leading-tight mb-2">{title}</div>
       {children}
     </div>
   )

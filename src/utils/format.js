@@ -48,3 +48,13 @@ export function parseAmount(s) {
   const n = Number(t)
   return Number.isFinite(n) ? n : null
 }
+
+const DAGEN_LANG = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag']
+const MAANDEN_LANG = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
+
+/** '2026-10-14' → 'woensdag 14 oktober' (met jaar als het niet dit jaar is). */
+export function longDateLabel(datum) {
+  const { y, m, d, wd } = parts(datum)
+  const jaar = y !== new Date().getFullYear() ? ` ${y}` : ''
+  return `${DAGEN_LANG[wd]} ${d} ${MAANDEN_LANG[m - 1]}${jaar}`
+}

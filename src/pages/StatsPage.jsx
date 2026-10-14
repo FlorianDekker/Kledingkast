@@ -34,7 +34,7 @@ function Card({ title, sub, right, children }) {
     <div className="card mx-4 p-4">
       <div className="flex items-start justify-between gap-2 mb-3">
         <div>
-          <div className="text-sm font-semibold">{title}</div>
+          <div className="font-display text-xl leading-tight">{title}</div>
           {sub && <div className="text-xs text-muted mt-0.5">{sub}</div>}
         </div>
         {right}
@@ -46,9 +46,9 @@ function Card({ title, sub, right, children }) {
 
 function Stat({ label, value }) {
   return (
-    <div className="card px-3 py-3">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">{label}</div>
-      <div className="text-xl font-bold tabular-nums mt-0.5">{value}</div>
+    <div className="card px-4 py-3.5">
+      <div className="eyebrow">{label}</div>
+      <div className="font-display text-[28px] leading-tight tabular-nums mt-1">{value}</div>
     </div>
   )
 }
@@ -89,9 +89,9 @@ export function StatsPage() {
     }
   }, [allRows, rows, items, wears, range, today, target])
 
-  if (!data) return <PageWrapper title="Statistieken" />
+  if (!data) return <PageWrapper title="Inzicht" />
   if (!allRows.length) {
-    return <PageWrapper title="Statistieken"><div className="card mx-4 p-6 text-sm text-muted text-center">Nog geen kleding. Importeer je Excel via Meer.</div></PageWrapper>
+    return <PageWrapper title="Inzicht"><div className="card mx-4 p-6 text-sm text-muted text-center">Nog geen kleding. Importeer je Excel via Meer.</div></PageWrapper>
   }
 
   const cm = CAT_METRICS.find(m => m.key === catMetric)
@@ -100,7 +100,7 @@ export function StatsPage() {
     <div className="flex gap-1 shrink-0">
       {RANGES.map(r => (
         <button key={r.key} onClick={() => setRange(r.key)} className="text-[11px] px-2 py-1 rounded-full font-medium whitespace-nowrap"
-          style={range === r.key ? { background: 'var(--color-accent-light)', color: 'var(--color-accent)' } : { color: 'var(--color-muted)' }}>
+          style={range === r.key ? { background: 'var(--color-accent)', color: 'var(--color-on-accent)' } : { color: 'var(--color-muted)' }}>
           {r.label}
         </button>
       ))}
@@ -108,7 +108,7 @@ export function StatsPage() {
   )
 
   return (
-    <PageWrapper title="Statistieken">
+    <PageWrapper title="Inzicht">
       <div className="px-4 mb-3 flex items-center justify-between">
         <div className="flex gap-1.5">
           <Chip active={!alleenKast} onClick={() => setAlleenKast(false)}>Alles ooit</Chip>
@@ -144,7 +144,7 @@ export function StatsPage() {
         <Card title="Per soort">
           <MetricChips metrics={CAT_METRICS} value={catMetric} onChange={setCatMetric} />
           <LabelBars
-            labels={data.cats.map(c => `${c.emoji} ${c.label}`)}
+            labels={data.cats.map(c => c.label)}
             values={data.cats.map(c => c[catMetric])}
             format={v => (v == null ? '–' : cm.format(v))}
           />
@@ -191,7 +191,7 @@ function TipList({ title, rows, photoUrls, onOpen, detail }) {
   if (!rows.length) return null
   return (
     <div className="mb-3 last:mb-0">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-1">{title}</div>
+      <div className="eyebrow mb-1">{title}</div>
       {rows.map(r => (
         <button key={r.item.id} onClick={() => onOpen(r.item.id)} className="w-full flex items-center gap-2.5 py-1.5 text-left">
           <ItemThumb item={r.item} url={photoUrls.get(r.item.id)} size={30} rounded="rounded-lg" />

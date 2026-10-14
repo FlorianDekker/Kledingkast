@@ -33,7 +33,7 @@ export function ItemPickerSheet({ open, onClose, items, photoUrls, onPick, title
       </div>
       {groups.map(g => (
         <div key={g.key} className="px-4 pb-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted mt-2 mb-1">{g.emoji} {g.label}</div>
+          <div className="eyebrow mt-3 mb-1">{g.label}</div>
           {g.items.map(it => (
             <button
               key={it.id}

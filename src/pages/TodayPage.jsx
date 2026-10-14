@@ -1,37 +1,29 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { PageWrapper } from '../components/layout/PageWrapper'
-import { ItemThumb } from '../components/items/ItemThumb'
 import { ItemSheet } from '../components/items/ItemSheet'
+import { ItemThumb } from '../components/items/ItemThumb'
 import { OutfitDoll } from '../components/items/OutfitDoll'
-import { useLayers } from '../hooks/useLayers'
-import { BASE_ID } from '../db/db'
+import { GarmentIcon } from '../components/icons/GarmentIcon'
 import { useItemStats, usePhotoUrls } from '../hooks/useData'
+import { useLayers, layerOrder } from '../hooks/useLayers'
 import { saveWear, deleteWear } from '../db/actions'
+import { BASE_ID } from '../db/db'
 import { CATEGORIES } from '../constants/categories'
-import { recentCounts, suggestions, todayStr, addDays } from '../utils/stats'
-import { dateLabel, agoLabel } from '../utils/format'
+import { COLOUR_BY_KEY } from '../utils/colors'
+import { recentCounts, todayStr, addDays } from '../utils/stats'
+import { agoLabel, longDateLabel } from '../utils/format'
 
 export function TodayPage() {
   const { items, wears, rows } = useItemStats()
   const photoUrls = usePhotoUrls()
   const layers = useLayers()
-  const hasDoll = !!layers?.get(BASE_ID)
-  // Is het grote voorbeeld in beeld? Zo niet, dan een kleine pop naast de opslaanknop.
-  const [previewVisible, setPreviewVisible] = useState(false)
-  const observer = useRef(null)
-  const previewRef = useCallback(node => {
-    observer.current?.disconnect()
-    observer.current = null
-    if (!node) { setPreviewVisible(false); return }
-    observer.current = new IntersectionObserver(([e]) => setPreviewVisible(e.isIntersecting), { threshold: 0.2 })
-    observer.current.observe(node)
-  }, [])
   const today = todayStr()
   const [datum, setDatum] = useState(today)
   const [selected, setSelected] = useState(() => new Set())
   const [editingId, setEditingId] = useState(null)
-  const [newFor, setNewFor] = useState(null) // categorie voor "nieuw stuk"
+  const [tab, setTab] = useState(CATEGORIES[0].key)
+  const [shown, setShown] = useState(0)
+  const [newFor, setNewFor] = useState(null)
   const [openItem, setOpenItem] = useState(null)
   const [flash, setFlash] = useState(null)
 
@@ -39,19 +31,16 @@ export function TodayPage() {
   const totals = useMemo(() => new Map((rows ?? []).map(r => [r.item.id, r.count])), [rows])
   const recent = useMemo(() => (wears ? recentCounts(wears, today) : new Map()), [wears, today])
 
-  const perCategory = useMemo(() => {
+  const tabItems = useMemo(() => {
     const score = it => [recent.get(it.id) ?? 0, totals.get(it.id) ?? 0]
-    return CATEGORIES.map(c => ({
-      ...c,
-      items: (items ?? [])
-        .filter(i => i.categorie === c.key && (!i.uitKast || selected.has(i.id)))
-        .sort((a, b) => {
-          const [ra, ta] = score(a)
-          const [rb, tb] = score(b)
-          return rb - ra || tb - ta || a.naam.localeCompare(b.naam)
-        }),
-    }))
-  }, [items, recent, totals, selected])
+    return (items ?? [])
+      .filter(i => i.categorie === tab && (!i.uitKast || selected.has(i.id)))
+      .sort((a, b) => {
+        const [ra, ta] = score(a)
+        const [rb, tb] = score(b)
+        return rb - ra || tb - ta || a.naam.localeCompare(b.naam)
+      })
+  }, [items, tab, recent, totals, selected])
 
   const dayWears = useMemo(
     () => (wears ?? []).filter(w => w.datum === datum && w.itemIds?.length).sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
@@ -64,24 +53,31 @@ export function TodayPage() {
     return prev[0] ?? null
   }, [wears, datum, editingId])
   const chosen = useMemo(() => [...selected].map(id => byId.get(id)).filter(Boolean), [selected, byId])
-  const tips = useMemo(() => (rows ? suggestions(rows, { today, limit: 6 }).vergeten : []), [rows, today])
 
-  if (items === null || wears === null) return <PageWrapper title="Vandaag" />
+  if (items === null || wears === null || layers === null) return <div className="min-h-screen" />
 
   if (items.length === 0) {
     return (
-      <PageWrapper title="Vandaag">
-        <div className="card mx-4 p-6 text-center">
-          <div className="text-4xl mb-2">👕</div>
-          <div className="font-semibold mb-1">Je kast is nog leeg</div>
-          <p className="text-sm text-muted mb-4">Importeer je Excel van het Google Form, of begin met je eerste kledingstuk.</p>
-          <Link to="/meer" className="btn-accent block py-3 text-sm mb-2">Excel importeren</Link>
-          <button onClick={() => setNewFor('broek')} className="text-sm font-medium" style={{ color: 'var(--color-accent)' }}>Zelf een stuk toevoegen</button>
+      <div className="safe-top px-5 animate-fade-in">
+        <h1 className="font-display text-[34px] leading-none mb-6">Vandaag</h1>
+        <div className="stage p-8 text-center">
+          <div className="flex justify-center mb-4"><GarmentIcon categorie="trui" fill="#D9D3C8" size={72} /></div>
+          <div className="font-display text-2xl mb-2">Je kast is nog leeg</div>
+          <p className="text-sm text-muted mb-6">Importeer je Excel van het Google Form, of begin met je eerste kledingstuk.</p>
+          <Link to="/meer" className="btn-accent block py-3.5 text-sm mb-3">Excel importeren</Link>
+          <button onClick={() => setNewFor('broek')} className="text-sm font-medium">Zelf een stuk toevoegen</button>
         </div>
         <ItemSheet open={!!newFor} preset={{ categorie: newFor }} onClose={() => setNewFor(null)} />
-      </PageWrapper>
+      </div>
     )
   }
+
+  const composing = selected.size > 0 || !!editingId
+  const viewIndex = Math.min(shown, Math.max(0, dayWears.length - 1))
+  const viewWear = !composing && dayWears.length ? dayWears[viewIndex] : null
+  const stageItems = composing ? chosen : viewWear ? viewWear.itemIds.map(id => byId.get(id)).filter(Boolean) : []
+  const hasDoll = !!layers.get(BASE_ID)
+  const offDoll = stageItems.filter(it => !layers.get(it.id)).length
 
   const toggle = id => setSelected(s => {
     const n = new Set(s)
@@ -94,171 +90,189 @@ export function TodayPage() {
     setDatum(d)
     setEditingId(null)
     setSelected(new Set())
+    setShown(0)
+  }
+
+  const say = text => {
+    setFlash(text)
+    setTimeout(() => setFlash(null), 1800)
   }
 
   async function save() {
     if (!selected.size) return
+    const wasEditing = !!editingId
     await saveWear({ id: editingId ?? undefined, datum, itemIds: [...selected] })
-    setFlash(editingId ? 'Outfit bijgewerkt' : 'Outfit opgeslagen')
-    setTimeout(() => setFlash(null), 1800)
     setSelected(new Set())
     setEditingId(null)
+    setShown(wasEditing ? viewIndex : dayWears.length)
+    say(wasEditing ? 'Outfit bijgewerkt' : 'Outfit opgeslagen')
   }
 
   function edit(w) {
     setEditingId(w.id)
     setSelected(new Set(w.itemIds))
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function remove(w) {
     if (!window.confirm('Deze outfit verwijderen?')) return
     await deleteWear(w.id)
-    if (editingId === w.id) { setEditingId(null); setSelected(new Set()) }
+    setShown(0)
   }
 
-  const dayTitle = datum === today ? 'Vandaag' : datum === addDays(today, -1) ? 'Gisteren' : dateLabel(datum)
+  function cancel() {
+    setEditingId(null)
+    setSelected(new Set())
+  }
+
+  const dayTitle = datum === today ? 'Vandaag' : datum === addDays(today, -1) ? 'Gisteren' : 'Terugblik'
+  const badge = editingId ? 'Bewerken' : composing ? 'Nieuwe outfit'
+    : viewWear ? (dayWears.length > 1 ? `Gelogd · ${viewIndex + 1} van ${dayWears.length}` : 'Gelogd')
+    : 'Nog niets gelogd'
 
   return (
-    <PageWrapper>
-      <div className="safe-top px-4 pt-4 pb-2 flex items-center gap-2">
-        <button onClick={() => changeDay(addDays(datum, -1))} className="w-9 h-9 rounded-full text-lg" style={{ background: 'var(--color-surface)' }} aria-label="Vorige dag">‹</button>
-        <label className="flex-1 text-center relative">
-          <div className="text-xl font-bold">{dayTitle}</div>
-          <div className="text-xs text-muted">{dateLabel(datum)}</div>
+    <div className="flex flex-col animate-fade-in" style={{ height: '100dvh' }}>
+      {/* Kop met datum */}
+      <header className="safe-top px-5 pb-3 flex items-end justify-between gap-3 shrink-0">
+        <label className="relative min-w-0">
+          <div className="eyebrow">{longDateLabel(datum)}</div>
+          <h1 className="font-display text-[34px] leading-none m-0">{dayTitle}</h1>
           <input type="date" value={datum} max={today} onChange={e => e.target.value && changeDay(e.target.value)}
             className="absolute inset-0 opacity-0" aria-label="Kies datum" />
         </label>
-        <button onClick={() => changeDay(addDays(datum, 1))} disabled={datum >= today}
-          className="w-9 h-9 rounded-full text-lg disabled:opacity-30" style={{ background: 'var(--color-surface)' }} aria-label="Volgende dag">›</button>
-      </div>
+        <div className="flex gap-1.5 shrink-0">
+          <RoundButton onClick={() => changeDay(addDays(datum, -1))} label="Vorige dag">‹</RoundButton>
+          <RoundButton onClick={() => changeDay(addDays(datum, 1))} disabled={datum >= today} label="Volgende dag">›</RoundButton>
+        </div>
+      </header>
 
-      {dayWears.length > 0 && (
-        <div className="px-4 space-y-2 mb-3">
-          {dayWears.map(w => (
-            <div key={w.id} className="card p-3" style={editingId === w.id ? { boxShadow: '0 0 0 2px var(--color-accent)' } : undefined}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-                  {w.bron === 'form' ? 'Gelogd via Form' : 'Gelogd'}{editingId === w.id ? ' · aan het bewerken' : ''}
-                </span>
-                <div className="flex gap-3 text-xs font-medium">
-                  <button onClick={() => edit(w)} style={{ color: 'var(--color-accent)' }}>Bewerk</button>
-                  <button onClick={() => remove(w)} className="text-red">Verwijder</button>
-                </div>
-              </div>
-              <div className="flex gap-3">
-              {hasDoll && w.itemIds.some(id => layers.get(id)) && (
-                <OutfitDoll items={w.itemIds.map(id => byId.get(id)).filter(Boolean)} layers={layers} height={170} />
+      {/* Podium met de pop */}
+      <section className="px-4 shrink-0">
+        <div className="stage relative overflow-hidden" style={{ height: 'clamp(250px, 43dvh, 460px)' }}>
+          <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2 z-10">
+            <span className="eyebrow px-2.5 py-1 rounded-full" style={{ background: 'var(--color-surface)', color: 'var(--color-text)' }}>{badge}</span>
+            <div className="flex gap-1.5">
+              {viewWear && (
+                <>
+                  <StageButton onClick={() => edit(viewWear)}>Bewerk</StageButton>
+                  <StageButton onClick={() => remove(viewWear)}>Verwijder</StageButton>
+                </>
               )}
-              <div className="flex flex-wrap gap-2 content-start">
-                {w.itemIds.map(id => byId.get(id)).filter(Boolean).map(it => (
-                  <button key={it.id} onClick={() => setOpenItem(it.id)} className="flex items-center gap-1.5 pr-2.5 rounded-full" style={{ background: 'var(--color-surface-2)' }}>
-                    <ItemThumb item={it} url={photoUrls.get(it.id)} size={28} rounded="rounded-full" />
-                    <span className="text-xs">{it.naam}</span>
+              {!composing && !viewWear && lastOutfit && (
+                <StageButton onClick={() => setSelected(new Set(lastOutfit.itemIds.filter(id => byId.get(id) && !byId.get(id).uitKast)))}>
+                  ↺ Zelfde als {agoLabel(lastOutfit.datum, datum).replace(' geleden', ' terug')}
+                </StageButton>
+              )}
+            </div>
+          </div>
+
+          <div className="absolute inset-0 flex items-center justify-center pt-10 pb-12">
+            {hasDoll
+              ? <OutfitDoll items={stageItems} layers={layers} height="100%" />
+              : <FlatLay items={stageItems} photoUrls={photoUrls} />}
+          </div>
+
+          {!composing && !viewWear && (
+            <div className="absolute inset-x-0 bottom-4 text-center text-sm text-muted">Kies hieronder wat je aanhebt</div>
+          )}
+
+          {stageItems.length > 0 && (
+            <div className="absolute inset-x-0 bottom-0 px-3 pb-3 z-10">
+              {offDoll > 0 && hasDoll && (
+                <div className="text-[11px] text-muted mb-1.5 px-1">{offDoll} {offDoll === 1 ? 'stuk staat' : 'stukken staan'} nog niet op de pop</div>
+              )}
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-none">
+                {stageItems.map(it => (
+                  <button key={it.id}
+                    onClick={() => (composing ? toggle(it.id) : setOpenItem(it.id))}
+                    className="shrink-0 flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full text-xs"
+                    style={{ background: 'var(--color-surface)', boxShadow: 'var(--shadow-card)', opacity: hasDoll && !layers.get(it.id) ? 0.7 : 1 }}>
+                    <ItemThumb item={it} url={photoUrls.get(it.id)} size={22} rounded="rounded-full" />
+                    <span className="max-w-[9rem] truncate">{it.naam}</span>
+                    {composing && <span className="text-muted">×</span>}
                   </button>
                 ))}
               </div>
-              </div>
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      <div className="px-4 mb-2 flex items-center justify-between">
-        <div className="text-sm font-semibold">{editingId ? 'Outfit bewerken' : dayWears.length ? 'Nog een outfit' : 'Wat heb je aan?'}</div>
-        {lastOutfit && !editingId && (
-          <button onClick={() => setSelected(new Set(lastOutfit.itemIds.filter(id => byId.get(id) && !byId.get(id).uitKast)))}
-            className="text-xs font-medium px-3 py-1.5 rounded-full" style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent)' }}>
-            ↺ Zelfde als {lastOutfit.datum === datum ? 'net' : agoLabel(lastOutfit.datum, datum).replace(' geleden', ' terug')}
-          </button>
-        )}
-      </div>
-
-      {hasDoll && selected.size > 0 && (() => {
-        const zonder = chosen.filter(it => !layers.get(it.id))
-        return (
-          <div ref={previewRef} className="card mx-4 mb-3 p-3 flex gap-3 items-center animate-fade-in">
-            <OutfitDoll items={chosen} layers={layers} height={280} />
-            <div className="flex-1 min-w-0 text-xs text-muted space-y-1">
-              {chosen.filter(it => layers.get(it.id)).map(it => <div key={it.id} className="truncate" style={{ color: 'var(--color-text)' }}>{it.naam}</div>)}
-              {zonder.length > 0 && (
-                <div className="pt-2">
-                  <div className="font-semibold uppercase tracking-wider text-[10px]">Nog niet op de pop</div>
-                  {zonder.map(it => <div key={it.id} className="truncate">{it.naam}</div>)}
-                </div>
-              )}
-            </div>
-          </div>
-        )
-      })()}
-
-      <div className="space-y-3 pb-28">
-        {perCategory.map(c => (
-          <div key={c.key}>
-            <div className="px-4 text-[11px] font-semibold uppercase tracking-wider text-muted mb-1.5">{c.emoji} {c.label}</div>
-            <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 pb-1">
-              {c.items.map(it => {
-                const on = selected.has(it.id)
-                return (
-                  <button key={it.id} onClick={() => toggle(it.id)} className="shrink-0 w-[76px] text-center">
-                    <div className="relative mx-auto w-fit rounded-2xl" style={{ boxShadow: on ? '0 0 0 3px var(--color-accent)' : undefined }}>
-                      <ItemThumb item={it} url={photoUrls.get(it.id)} size={64} rounded="rounded-2xl" />
-                      {on && (
-                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-[11px] text-white flex items-center justify-center"
-                          style={{ background: 'var(--color-accent)' }}>✓</span>
-                      )}
-                    </div>
-                    <div className={`text-[11px] leading-tight mt-1.5 line-clamp-2 ${on ? 'font-semibold' : ''}`}>{it.naam}</div>
-                  </button>
-                )
-              })}
-              <button onClick={() => setNewFor(c.key)} className="shrink-0 w-[76px] text-center">
-                <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center text-2xl text-muted"
-                  style={{ border: '2px dashed var(--color-text-dim)' }}>+</div>
-                <div className="text-[11px] mt-1.5 text-muted">Nieuw</div>
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {tips.length > 0 && !editingId && (
-          <div className="card mx-4 p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-2">Al lang niet aangehad</div>
-            <div className="flex flex-wrap gap-2">
-              {tips.map(r => (
-                <button key={r.item.id} onClick={() => toggle(r.item.id)}
-                  className="flex items-center gap-1.5 pr-2.5 rounded-full text-left"
-                  style={{ background: selected.has(r.item.id) ? 'var(--color-accent-light)' : 'var(--color-surface-2)' }}>
-                  <ItemThumb item={r.item} url={photoUrls.get(r.item.id)} size={28} rounded="rounded-full" />
-                  <span className="text-xs">{r.item.naam} <span className="text-muted">· {agoLabel(r.lastWorn, today)}</span></span>
-                </button>
+          {dayWears.length > 1 && !composing && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 z-10">
+              {dayWears.map((w, i) => (
+                <button key={w.id} onClick={() => setShown(i)} aria-label={`Outfit ${i + 1}`}
+                  className="w-2 h-2 rounded-full" style={{ background: i === viewIndex ? 'var(--color-text)' : 'var(--color-text-dim)' }} />
               ))}
             </div>
-          </div>
-        )}
+          )}
+
+          {flash && (
+            <div className="absolute inset-x-0 top-14 flex justify-center z-20 animate-fade-in">
+              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'var(--color-accent)', color: 'var(--color-on-accent)' }}>✓ {flash}</span>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Tabbladen per soort */}
+      <div className="flex gap-1.5 overflow-x-auto scrollbar-none px-4 pt-3 pb-2 shrink-0">
+        {CATEGORIES.map(c => {
+          const n = chosen.filter(it => it.categorie === c.key).length
+          const on = tab === c.key
+          return (
+            <button key={c.key} onClick={() => setTab(c.key)}
+              className="shrink-0 flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[13px] font-medium"
+              style={on ? { background: 'var(--color-accent)', color: 'var(--color-on-accent)' } : { background: 'var(--color-surface)', color: 'var(--color-text)', boxShadow: 'var(--shadow-card)' }}>
+              <GarmentIcon categorie={c.key} fill={on ? '#E9E5DE' : '#D9D3C8'} size={20} strokeWidth={2} />
+              {c.label}
+              {n > 0 && (
+                <span className="min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+                  style={on ? { background: 'var(--color-on-accent)', color: 'var(--color-accent)' } : { background: 'var(--color-accent)', color: 'var(--color-on-accent)' }}>{n}</span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
-      <div className="fixed left-0 right-0 z-30 px-4" style={{ bottom: 'calc(env(safe-area-inset-bottom) + 68px)' }}>
-        {flash && <div className="text-center text-xs font-medium mb-2 animate-fade-in" style={{ color: 'var(--color-green)' }}>✓ {flash}</div>}
-        {(selected.size > 0 || editingId) && (
-          <div className="flex gap-2 items-end animate-fade-in-up">
-            {hasDoll && selected.size > 0 && !previewVisible && (
-              <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Naar het voorbeeld"
-                className="rounded-2xl px-1 pt-1 shrink-0" style={{ background: 'var(--color-surface)', boxShadow: 'var(--shadow-card)' }}>
-                <OutfitDoll items={chosen} layers={layers} height={104} />
+      {/* Raster met stukken */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 pt-1" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 150px)' }}>
+        <div className="grid grid-cols-3 gap-x-2.5 gap-y-3">
+          {tabItems.map(it => {
+            const on = selected.has(it.id)
+            return (
+              <button key={it.id} onClick={() => toggle(it.id)} className="text-left">
+                <div className="relative aspect-square rounded-2xl flex items-center justify-center overflow-hidden"
+                  style={{ background: 'var(--color-surface)', boxShadow: on ? '0 0 0 2px var(--color-accent)' : 'var(--shadow-card)' }}>
+                  {photoUrls.get(it.id)
+                    ? <img src={photoUrls.get(it.id)} alt="" className="w-full h-full object-contain p-1.5" />
+                    : <GarmentIcon categorie={it.categorie} fill={tileColour(it)} size={58} />}
+                  {on && (
+                    <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center"
+                      style={{ background: 'var(--color-accent)', color: 'var(--color-on-accent)' }}>✓</span>
+                  )}
+                </div>
+                <div className={`text-[12px] leading-tight mt-1.5 line-clamp-2 ${on ? 'font-semibold' : ''}`}>{it.naam}</div>
+                <div className="text-[11px] text-muted mt-0.5 tabular-nums">{totals.get(it.id) ?? 0}×</div>
               </button>
-            )}
-            {editingId && (
-              <button onClick={() => { setEditingId(null); setSelected(new Set()) }} className="px-4 py-3 rounded-2xl text-sm font-medium" style={{ background: 'var(--color-surface)', boxShadow: 'var(--shadow-card)' }}>
-                Annuleer
-              </button>
-            )}
-            <button onClick={save} disabled={!selected.size} className="btn-accent flex-1 py-3.5 text-sm disabled:opacity-50">
-              {editingId ? 'Wijziging opslaan' : `Outfit opslaan · ${selected.size} ${selected.size === 1 ? 'stuk' : 'stukken'}`}
-            </button>
-          </div>
-        )}
+            )
+          })}
+          <button onClick={() => setNewFor(tab)} className="text-left">
+            <div className="aspect-square rounded-2xl flex items-center justify-center text-3xl font-light text-muted"
+              style={{ border: '1.5px dashed var(--color-text-dim)' }}>+</div>
+            <div className="text-[12px] mt-1.5 text-muted">Nieuw stuk</div>
+          </button>
+        </div>
       </div>
+
+      {/* Opslaan */}
+      {composing && (
+        <div className="fixed left-0 right-0 z-30 px-4 flex gap-2 animate-fade-in-up" style={{ bottom: 'calc(env(safe-area-inset-bottom) + 66px)' }}>
+          <button onClick={cancel} className="px-5 py-3.5 rounded-full text-sm font-medium glass" style={{ boxShadow: 'var(--shadow-float)' }}>
+            Annuleer
+          </button>
+          <button onClick={save} disabled={!selected.size} className="btn-accent flex-1 py-3.5 text-sm disabled:opacity-40" style={{ boxShadow: 'var(--shadow-float)' }}>
+            {editingId ? 'Wijziging opslaan' : `Opslaan · ${selected.size} ${selected.size === 1 ? 'stuk' : 'stukken'}`}
+          </button>
+        </div>
+      )}
 
       <ItemSheet
         open={!!newFor}
@@ -267,6 +281,38 @@ export function TodayPage() {
         onSaved={it => setSelected(s => new Set(s).add(it.id))}
       />
       <ItemSheet open={!!openItem} itemId={openItem} onClose={() => setOpenItem(null)} />
-    </PageWrapper>
+    </div>
+  )
+}
+
+const tileColour = it => (it.kleur === 'multi' ? '#C9B8A6' : COLOUR_BY_KEY[it.kleur]?.hex)
+
+function RoundButton({ onClick, disabled, label, children }) {
+  return (
+    <button onClick={onClick} disabled={disabled} aria-label={label}
+      className="w-9 h-9 rounded-full text-xl leading-none flex items-center justify-center disabled:opacity-30"
+      style={{ background: 'var(--color-surface)', boxShadow: 'var(--shadow-card)' }}>
+      {children}
+    </button>
+  )
+}
+
+function StageButton({ onClick, children }) {
+  return (
+    <button onClick={onClick} className="text-xs font-medium px-2.5 py-1 rounded-full"
+      style={{ background: 'var(--color-surface)', boxShadow: 'var(--shadow-card)' }}>
+      {children}
+    </button>
+  )
+}
+
+/** Zonder basispop: de stukken als flat lay, van boven (jas) naar beneden (schoenen). */
+function FlatLay({ items, photoUrls }) {
+  if (!items.length) return <GarmentIcon categorie="tshirt" fill="#E3DED5" size={120} strokeWidth={1} />
+  const sorted = [...items].sort((a, b) => layerOrder(b) - layerOrder(a))
+  return (
+    <div className="h-full flex flex-col items-center justify-center gap-2">
+      {sorted.map(it => <ItemThumb key={it.id} item={it} url={photoUrls.get(it.id)} size={Math.min(84, 300 / sorted.length)} rounded="rounded-2xl" />)}
+    </div>
   )
 }

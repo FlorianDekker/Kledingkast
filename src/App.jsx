@@ -20,11 +20,22 @@ export default function App() {
     applyBundled()
   }, [])
 
-  // iOS-terugveeg aan de linkerrand blokkeren
+  // Gedraag je als app: geen terugveeg aan de linkerrand, geen knijpzoom.
+  // (Dubbeltik-zoom en zoom-bij-invoer regelt index.css / de viewport-tag.)
   useEffect(() => {
-    const block = e => { if (e.touches[0].clientX < 20) e.preventDefault() }
-    document.addEventListener('touchstart', block, { passive: false })
-    return () => document.removeEventListener('touchstart', block)
+    const edge = e => { if (e.touches[0].clientX < 20) e.preventDefault() }
+    const pinch = e => { if (e.touches.length > 1) e.preventDefault() }
+    const gesture = e => e.preventDefault() // Safari: gesturestart/-change
+    document.addEventListener('touchstart', edge, { passive: false })
+    document.addEventListener('touchmove', pinch, { passive: false })
+    document.addEventListener('gesturestart', gesture)
+    document.addEventListener('gesturechange', gesture)
+    return () => {
+      document.removeEventListener('touchstart', edge)
+      document.removeEventListener('touchmove', pinch)
+      document.removeEventListener('gesturestart', gesture)
+      document.removeEventListener('gesturechange', gesture)
+    }
   }, [])
 
   return (

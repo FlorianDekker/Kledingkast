@@ -1,24 +1,22 @@
-import { CATEGORY_BY_KEY } from '../../constants/categories'
+import { GarmentIcon } from '../icons/GarmentIcon'
 import { COLOUR_BY_KEY } from '../../utils/colors'
 
-/** Foto van het stuk, of anders een gekleurd rondje met het categorie-icoon. */
+const MULTI = '#C9B8A6'
+
+/** Foto van het stuk, of anders een illustratie in de kleur van het stuk. */
 export function ItemThumb({ item, url, size = 44, rounded = 'rounded-xl', className = '' }) {
   const style = { width: size, height: size, minWidth: size }
   if (url) {
-    return <img src={url} alt="" className={`${rounded} object-cover ${className}`} style={style} draggable={false} />
+    return (
+      <div className={`${rounded} overflow-hidden flex items-center justify-center ${className}`} style={{ ...style, background: 'var(--color-surface-2)' }}>
+        <img src={url} alt="" className="w-full h-full object-contain" draggable={false} />
+      </div>
+    )
   }
-  const hex = COLOUR_BY_KEY[item?.kleur]?.hex
+  const kleur = item?.kleur === 'multi' ? MULTI : COLOUR_BY_KEY[item?.kleur]?.hex
   return (
-    <div
-      className={`${rounded} flex items-center justify-center ${className}`}
-      style={{
-        ...style,
-        background: hex ? `${hex}33` : 'var(--color-surface-2)',
-        boxShadow: hex ? `inset 0 0 0 2px ${hex}55` : undefined,
-        fontSize: size * 0.48,
-      }}
-    >
-      {CATEGORY_BY_KEY[item?.categorie]?.emoji ?? '👕'}
+    <div className={`${rounded} flex items-center justify-center ${className}`} style={{ ...style, background: 'var(--color-surface-2)' }}>
+      <GarmentIcon categorie={item?.categorie} fill={kleur} size={Math.round(size * 0.72)} />
     </div>
   )
 }

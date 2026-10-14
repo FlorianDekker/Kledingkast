@@ -7,7 +7,8 @@ import { euro, monthLabel } from '../../utils/format'
 
 ChartJS.register(BarElement, LineElement, PointElement, LinearScale, LogarithmicScale, CategoryScale, Tooltip, Filler)
 
-const accent = () => getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#2F5D50'
+// Grafieken in de warme accentkleur, niet in de inkt van de knoppen
+const accent = () => getComputedStyle(document.documentElement).getPropertyValue('--color-highlight').trim() || '#A0673F'
 
 function baseOptions({ yFormat, horizontal = false } = {}) {
   const valueAxis = {

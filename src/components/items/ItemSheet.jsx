@@ -204,7 +204,7 @@ function ItemSheetInner({ onClose, itemId, preset, onSaved }) {
               <div className="flex items-end gap-[2px] h-16">
                 {perMonth.map(m => (
                   <div key={m.month} className="flex-1 rounded-t-sm" title={`${monthLabel(m.month)}: ${m.count}×`}
-                    style={{ height: `${Math.max(m.count ? 8 : 2, (m.count / maxMonth) * 100)}%`, background: m.count ? 'var(--color-accent)' : 'var(--color-surface-2)' }} />
+                    style={{ height: `${Math.max(m.count ? 8 : 2, (m.count / maxMonth) * 100)}%`, background: m.count ? 'var(--color-highlight)' : 'var(--color-surface-2)' }} />
                 ))}
               </div>
               <div className="flex justify-between text-[10px] text-muted mt-1">
@@ -228,7 +228,7 @@ function ItemSheetInner({ onClose, itemId, preset, onSaved }) {
             <div className="flex flex-wrap gap-1.5">
               {CATEGORIES.map(c => (
                 <Chip key={c.key} active={form.categorie === c.key} onClick={() => set('categorie', c.key)}>
-                  {c.emoji} {c.label}
+                  {c.label}
                 </Chip>
               ))}
             </div>

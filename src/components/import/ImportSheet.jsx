@@ -124,7 +124,7 @@ export function ImportSheet({ buffer, fileName, onClose }) {
                         <div key={u.naam} className="rounded-xl p-2.5" style={{ background: 'var(--color-surface-2)' }}>
                           <div className="flex justify-between gap-2 text-sm">
                             <span className="font-medium min-w-0 truncate">{u.naam}</span>
-                            <span className="text-xs text-muted shrink-0">{CATEGORY_BY_KEY[u.categorie]?.emoji} {u.count}× · laatst {agoLabel(u.lastDatum)}</span>
+                            <span className="text-xs text-muted shrink-0">{CATEGORY_BY_KEY[u.categorie]?.label} · {u.count}× · laatst {agoLabel(u.lastDatum)}</span>
                           </div>
                           <div className="flex gap-1.5 mt-2">
                             <Opt on={d.action === 'new'} onClick={() => decide(u.naam, { action: 'new' })}>Nieuw stuk</Opt>
@@ -203,7 +203,7 @@ function Num({ label, value }) {
 function Opt({ on, onClick, children }) {
   return (
     <button onClick={onClick} className="px-2.5 py-1 rounded-full text-xs font-medium truncate max-w-[50%]"
-      style={on ? { background: 'var(--color-accent)', color: '#fff' } : { background: 'var(--color-surface)', color: 'var(--color-text)' }}>
+      style={on ? { background: 'var(--color-accent)', color: 'var(--color-on-accent)' } : { background: 'var(--color-surface)', color: 'var(--color-text)' }}>
       {children}
     </button>
   )
