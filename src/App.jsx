@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { db } from './db/db'
+import { applyBundled } from './db/bundled'
 import { BottomNav } from './components/layout/BottomNav'
 import { TodayPage } from './pages/TodayPage'
 import { WardrobePage } from './pages/WardrobePage'
@@ -16,6 +17,7 @@ export default function App() {
       document.documentElement.classList.toggle('dark', (row?.value ?? 'light') === 'dark')
     })
     applySheetMargin(DEFAULT_SHEET_MARGIN)
+    applyBundled()
   }, [])
 
   // iOS-terugveeg aan de linkerrand blokkeren

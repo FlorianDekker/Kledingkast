@@ -105,6 +105,7 @@ export function MorePage() {
   async function wipe() {
     if (!window.confirm('Echt alles wissen? Kledingstukken, outfits en foto\'s zijn daarna weg. Maak eerst een back-up.')) return
     await Promise.all([db.items.clear(), db.wears.clear(), db.aliases.clear(), db.photos.clear(), db.layers.clear()])
+    await db.settings.delete('meegeleverd') // zodat meegeleverde pop en lagen na een nieuwe import terugkomen
     setMsg('Alles gewist.')
   }
 

@@ -1,0 +1,34 @@
+{
+  "lagen": [
+    {
+      "naam": "Flowfrog t-shirt",
+      "file": "flowfrog-t-shirt.png",
+      "x": 260,
+      "y": 267,
+      "w": 508,
+      "h": 571,
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "naam": "Dickies 874 zwart",
+      "file": "dickies-874-zwart.png",
+      "x": 340,
+      "y": 652,
+      "w": 343,
+      "h": 788,
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "naam": "New Balance 1906R",
+      "file": "new-balance-1906r.png",
+      "x": 308,
+      "y": 1353,
+      "w": 406,
+      "h": 155,
+      "width": 1024,
+      "height": 1536
+    }
+  ]
+}

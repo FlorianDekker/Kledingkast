@@ -40,3 +40,13 @@ verschil: kleur de hele pop egaal, mat, fel magenta (#FF00FF). Verder niets vera
 ```
 
 Vermijd woorden als ondergoed of blote huid: die triggeren het naaktfilter van ChatGPT.
+
+## Meegeleverde pop en lagen
+
+`public/data/basispop.png` en `public/data/lagen/` worden bij het opstarten (en na een import) automatisch toegepast door `src/db/bundled.js`: de basispop als er nog geen is, en elke laag op het stuk met dezelfde naam als dat stuk nog geen laag heeft. Wat eenmaal is toegepast staat in de setting `meegeleverd`; weggehaalde lagen komen dus niet terug.
+
+Een nieuwe afbeelding meeleveren:
+
+```
+node scripts/maak-laag.mjs "<magenta-afbeelding.png>" "<naam zoals in de kast>"
+```

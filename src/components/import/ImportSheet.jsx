@@ -3,6 +3,7 @@ import { Sheet } from '../ui/Sheet'
 import { ItemPickerSheet } from '../items/ItemPickerSheet'
 import { db } from '../../db/db'
 import { applyImport, importedFormKeys } from '../../db/actions'
+import { applyBundled } from '../../db/bundled'
 import { readWorkbook, planImport, compareWithExcel, normName } from '../../utils/importForm'
 import { CATEGORY_BY_KEY } from '../../constants/categories'
 import { addDays, todayStr } from '../../utils/stats'
@@ -55,6 +56,7 @@ export function ImportSheet({ buffer, fileName, onClose }) {
     setState(s => ({ ...s, phase: 'bezig' }))
     try {
       const result = await applyImport(state.plan, decisions)
+      await applyBundled() // meegeleverde poplagen aan de net geïmporteerde stukken hangen
       setState(s => ({ ...s, phase: 'klaar', result }))
     } catch (err) {
       setState({ phase: 'fout', error: err.message })
