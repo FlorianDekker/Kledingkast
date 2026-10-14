@@ -520,6 +520,24 @@
         "h": 624
       },
       "bronbestand": "e18fe7c8-ed56-4504-9534-2fccc641cf76.png"
+    },
+    {
+      "naam": "Utah t-shirt",
+      "file": "utah-t-shirt-1a01449a.png",
+      "x": 284,
+      "y": 248,
+      "w": 452,
+      "h": 518,
+      "width": 1024,
+      "height": 1536,
+      "mask": {
+        "file": "utah-t-shirt-1a01449a-masker.png",
+        "x": 260,
+        "y": 224,
+        "w": 500,
+        "h": 566
+      },
+      "bronbestand": "56f37d52-a6d6-41e6-935f-efab7a1cc998.png"
     }
   ],
   "ingetrokken": [
