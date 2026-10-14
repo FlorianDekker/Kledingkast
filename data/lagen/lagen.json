@@ -2,36 +2,88 @@
   "lagen": [
     {
       "naam": "Flowfrog t-shirt",
-      "file": "flowfrog-t-shirt.png",
+      "file": "flowfrog-t-shirt-57650b08.png",
       "x": 260,
       "y": 267,
       "w": 508,
       "h": 571,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "mask": {
+        "file": "flowfrog-t-shirt-57650b08-masker.png",
+        "x": 236,
+        "y": 243,
+        "w": 556,
+        "h": 619
+      },
+      "bronbestand": "e71c0e98-0fb2-4093-9226-e9523da40c3b.png",
+      "vervangt": [
+        {
+          "file": "flowfrog-t-shirt.png",
+          "x": 260,
+          "y": 267,
+          "w": 508,
+          "h": 571
+        }
+      ]
     },
     {
       "naam": "Blauwe linnen broek",
-      "file": "blauwe-linnen-broek.png",
+      "file": "blauwe-linnen-broek-77ed7067.png",
       "x": 340,
       "y": 652,
       "w": 343,
       "h": 788,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "mask": {
+        "file": "blauwe-linnen-broek-77ed7067-masker.png",
+        "x": 316,
+        "y": 628,
+        "w": 391,
+        "h": 836
+      },
+      "bronbestand": "6af8fd6a-be86-4288-a6f3-190b7b9d9391.png",
+      "vervangt": [
+        {
+          "file": "blauwe-linnen-broek.png",
+          "x": 340,
+          "y": 652,
+          "w": 343,
+          "h": 788
+        }
+      ]
     },
     {
       "naam": "Wit t-shirt uniqlo",
-      "file": "wit-t-shirt-uniqlo-377c5c28.png",
+      "file": "wit-t-shirt-uniqlo-e39fb887.png",
       "x": 262,
       "y": 257,
       "w": 502,
       "h": 531,
       "width": 1024,
       "height": 1536,
+      "mask": {
+        "file": "wit-t-shirt-uniqlo-e39fb887-masker.png",
+        "x": 238,
+        "y": 233,
+        "w": 550,
+        "h": 579
+      },
+      "bronbestand": "eaa912a1-43b0-4cdc-85eb-4ebb7b582e15.png",
+      "opties": {
+        "knipOnder": 788
+      },
       "vervangt": [
         {
           "file": "wit-t-shirt-uniqlo.png",
+          "x": 262,
+          "y": 257,
+          "w": 502,
+          "h": 531
+        },
+        {
+          "file": "wit-t-shirt-uniqlo-377c5c28.png",
           "x": 262,
           "y": 257,
           "w": 502,
@@ -41,13 +93,21 @@
     },
     {
       "naam": "Grijs jas pak Vanda Tailors",
-      "file": "grijs-jas-pak-vanda-tailors-946685fe.png",
+      "file": "grijs-jas-pak-vanda-tailors-b21176b7.png",
       "x": 271,
       "y": 238,
       "w": 485,
       "h": 573,
       "width": 1024,
       "height": 1536,
+      "mask": {
+        "file": "grijs-jas-pak-vanda-tailors-b21176b7-masker.png",
+        "x": 247,
+        "y": 214,
+        "w": 533,
+        "h": 621
+      },
+      "bronbestand": "2d4ae662-ce35-4151-95ae-907fb8a23c1c.png",
       "vervangt": [
         {
           "file": "grijs-jas-pak-vanda-tailors.png",
@@ -62,18 +122,33 @@
           "y": 234,
           "w": 491,
           "h": 577
+        },
+        {
+          "file": "grijs-jas-pak-vanda-tailors-946685fe.png",
+          "x": 271,
+          "y": 238,
+          "w": 485,
+          "h": 573
         }
       ]
     },
     {
       "naam": "Grijze pantalon pak Vanda Tailors",
-      "file": "grijze-pantalon-pak-vanda-tailors-e952123a.png",
+      "file": "grijze-pantalon-pak-vanda-tailors-c23dba30.png",
       "x": 364,
       "y": 651,
       "w": 304,
       "h": 786,
       "width": 1024,
       "height": 1536,
+      "mask": {
+        "file": "grijze-pantalon-pak-vanda-tailors-c23dba30-masker.png",
+        "x": 340,
+        "y": 627,
+        "w": 352,
+        "h": 834
+      },
+      "bronbestand": "59ebb9ad-e39f-4bd5-b5ba-fc31952cb6c3.png",
       "vervangt": [
         {
           "file": "grijze-pantalon-pak-vanda-tailors.png",
@@ -88,18 +163,36 @@
           "y": 651,
           "w": 306,
           "h": 786
+        },
+        {
+          "file": "grijze-pantalon-pak-vanda-tailors-e952123a.png",
+          "x": 364,
+          "y": 651,
+          "w": 304,
+          "h": 786
         }
       ]
     },
     {
       "naam": "Wit overhemd Vanda Tailors",
-      "file": "wit-overhemd-vanda-tailors-c04b9326.png",
+      "file": "wit-overhemd-vanda-tailors-3e577125.png",
       "x": 276,
       "y": 236,
       "w": 477,
       "h": 568,
       "width": 1024,
       "height": 1536,
+      "mask": {
+        "file": "wit-overhemd-vanda-tailors-3e577125-masker.png",
+        "x": 252,
+        "y": 212,
+        "w": 525,
+        "h": 616
+      },
+      "bronbestand": "34f21956-0107-4ee6-9280-0b5ab08008b9.png",
+      "opties": {
+        "donkerWegOnder": 645
+      },
       "vervangt": [
         {
           "file": "wit-overhemd-vanda-tailors.png",
@@ -114,18 +207,34 @@
           "y": 235,
           "w": 485,
           "h": 581
+        },
+        {
+          "file": "wit-overhemd-vanda-tailors-c04b9326.png",
+          "x": 276,
+          "y": 236,
+          "w": 477,
+          "h": 568
         }
-      ]
+      ],
+      "ingestopt": true
     },
     {
       "naam": "Vans Mte Crosspath Xc",
-      "file": "vans-mte-crosspath-xc-3d4eb138.png",
+      "file": "vans-mte-crosspath-xc-ec8611fe.png",
       "x": 308,
       "y": 1371,
       "w": 406,
       "h": 137,
       "width": 1024,
       "height": 1536,
+      "mask": {
+        "file": "vans-mte-crosspath-xc-ec8611fe-masker.png",
+        "x": 284,
+        "y": 1347,
+        "w": 454,
+        "h": 185
+      },
+      "bronbestand": "cb602e1f-6d1b-428d-a02b-45af5d8e0771.png",
       "vervangt": [
         {
           "file": "vans-mte-crosspath-xc.png",
@@ -140,68 +249,277 @@
           "y": 1366,
           "w": 407,
           "h": 143
+        },
+        {
+          "file": "vans-mte-crosspath-xc-3d4eb138.png",
+          "x": 308,
+          "y": 1371,
+          "w": 406,
+          "h": 137
         }
       ]
     },
     {
       "naam": "Blauwe lange mouwen polo",
-      "file": "blauwe-lange-mouwen-polo-0f983fba.png",
+      "file": "blauwe-lange-mouwen-polo-666064e6.png",
       "x": 277,
       "y": 234,
       "w": 475,
       "h": 569,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "mask": {
+        "file": "blauwe-lange-mouwen-polo-666064e6-masker.png",
+        "x": 253,
+        "y": 210,
+        "w": 523,
+        "h": 617
+      },
+      "bronbestand": "6200a259-e4c3-4df7-aa35-567c02881653.png",
+      "vervangt": [
+        {
+          "file": "blauwe-lange-mouwen-polo-0f983fba.png",
+          "x": 277,
+          "y": 234,
+          "w": 475,
+          "h": 569
+        }
+      ]
     },
     {
       "naam": "Blauwe Ralph Lauren blouse",
-      "file": "blauwe-ralph-lauren-blouse-9931a332.png",
+      "file": "blauwe-ralph-lauren-blouse-60fcaa08.png",
       "x": 287,
       "y": 206,
       "w": 457,
       "h": 591,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "mask": {
+        "file": "blauwe-ralph-lauren-blouse-60fcaa08-masker.png",
+        "x": 263,
+        "y": 182,
+        "w": 505,
+        "h": 639
+      },
+      "bronbestand": "4e9693b3-f6a6-4b34-a0a9-97ddcc01bf0f.png",
+      "vervangt": [
+        {
+          "file": "blauwe-ralph-lauren-blouse-9931a332.png",
+          "x": 287,
+          "y": 206,
+          "w": 457,
+          "h": 591
+        }
+      ]
     },
     {
       "naam": "Spijkerbroek levi's",
-      "file": "spijkerbroek-levi-s-b19b0f39.png",
+      "file": "spijkerbroek-levi-s-2c18bcb6.png",
       "x": 349,
       "y": 608,
       "w": 325,
       "h": 841,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "mask": {
+        "file": "spijkerbroek-levi-s-2c18bcb6-masker.png",
+        "x": 325,
+        "y": 584,
+        "w": 373,
+        "h": 889
+      },
+      "bronbestand": "74bbdb3a-7026-4369-addf-7728087e6435.png",
+      "vervangt": [
+        {
+          "file": "spijkerbroek-levi-s-b19b0f39.png",
+          "x": 349,
+          "y": 608,
+          "w": 325,
+          "h": 841
+        }
+      ]
     },
     {
       "naam": "Blauw/zwart/wit geblokt jasje",
-      "file": "blauw-zwart-wit-geblokt-jasje-2306072e.png",
+      "file": "blauw-zwart-wit-geblokt-jasje-3b372fc4.png",
       "x": 267,
       "y": 227,
       "w": 487,
       "h": 582,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "mask": {
+        "file": "blauw-zwart-wit-geblokt-jasje-3b372fc4-masker.png",
+        "x": 243,
+        "y": 203,
+        "w": 535,
+        "h": 630
+      },
+      "bronbestand": "e25261d3-52d9-4b94-b7aa-95155dda45c3.png",
+      "vervangt": [
+        {
+          "file": "blauw-zwart-wit-geblokt-jasje-2306072e.png",
+          "x": 267,
+          "y": 227,
+          "w": 487,
+          "h": 582
+        }
+      ]
     },
     {
       "naam": "Groene vintage leren jas",
-      "file": "groene-vintage-leren-jas-b0a520fe.png",
+      "file": "groene-vintage-leren-jas-0a70c90e.png",
       "x": 267,
       "y": 225,
       "w": 496,
       "h": 587,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "mask": {
+        "file": "groene-vintage-leren-jas-0a70c90e-masker.png",
+        "x": 243,
+        "y": 201,
+        "w": 544,
+        "h": 635
+      },
+      "bronbestand": "deff3069-7b1e-42d5-a4b0-c5373899181a.png",
+      "vervangt": [
+        {
+          "file": "groene-vintage-leren-jas-b0a520fe.png",
+          "x": 267,
+          "y": 225,
+          "w": 496,
+          "h": 587
+        }
+      ]
     },
     {
       "naam": "Blauwe Uniqlo sweater",
-      "file": "blauwe-uniqlo-sweater-f33a28e3.png",
+      "file": "blauwe-uniqlo-sweater-02db8521.png",
       "x": 272,
       "y": 247,
       "w": 483,
       "h": 555,
       "width": 1024,
-      "height": 1536
+      "height": 1536,
+      "mask": {
+        "file": "blauwe-uniqlo-sweater-02db8521-masker.png",
+        "x": 248,
+        "y": 223,
+        "w": 531,
+        "h": 603
+      },
+      "bronbestand": "85ff1dca-a6f0-436e-a728-c6cfdbca60e8.png",
+      "vervangt": [
+        {
+          "file": "blauwe-uniqlo-sweater-f33a28e3.png",
+          "x": 272,
+          "y": 247,
+          "w": 483,
+          "h": 555
+        }
+      ]
+    },
+    {
+      "naam": "Blauwe jas pak",
+      "file": "blauwe-jas-pak-10ebf1dc.png",
+      "x": 271,
+      "y": 217,
+      "w": 476,
+      "h": 562,
+      "width": 1024,
+      "height": 1536,
+      "mask": {
+        "file": "blauwe-jas-pak-10ebf1dc-masker.png",
+        "x": 247,
+        "y": 193,
+        "w": 524,
+        "h": 610
+      },
+      "bronbestand": "d713874e-aae4-4a1c-9184-04220fcfafb9.png",
+      "vervangt": [
+        {
+          "file": "blauwe-jas-pak-3a8c8a7a.png",
+          "x": 271,
+          "y": 217,
+          "w": 476,
+          "h": 562
+        }
+      ]
+    },
+    {
+      "naam": "Blauwe pantalon pak",
+      "file": "blauwe-pantalon-pak-5fb584af.png",
+      "x": 368,
+      "y": 618,
+      "w": 308,
+      "h": 808,
+      "width": 1024,
+      "height": 1536,
+      "mask": {
+        "file": "blauwe-pantalon-pak-5fb584af-masker.png",
+        "x": 344,
+        "y": 594,
+        "w": 356,
+        "h": 856
+      },
+      "bronbestand": "f4ef8889-45d9-40b6-b8c9-af3035dc91f5.png",
+      "opties": {
+        "knipBoven": 615
+      },
+      "vervangt": [
+        {
+          "file": "blauwe-pantalon-pak-6830934e.png",
+          "x": 368,
+          "y": 418,
+          "w": 308,
+          "h": 1008
+        },
+        {
+          "file": "blauwe-pantalon-pak-ad3f5417.png",
+          "x": 368,
+          "y": 418,
+          "w": 308,
+          "h": 1008
+        }
+      ]
+    },
+    {
+      "naam": "Beige levi's",
+      "file": "beige-levi-s-bda15e25.png",
+      "x": 354,
+      "y": 606,
+      "w": 315,
+      "h": 819,
+      "width": 1024,
+      "height": 1536,
+      "mask": {
+        "file": "beige-levi-s-bda15e25-masker.png",
+        "x": 330,
+        "y": 582,
+        "w": 363,
+        "h": 867
+      },
+      "bronbestand": "2f6c3893-96ab-45f4-9df5-74f7c8a57413.png"
+    },
+    {
+      "naam": "Groene blouse",
+      "file": "groene-blouse-ecfa468c.png",
+      "x": 273,
+      "y": 224,
+      "w": 478,
+      "h": 576,
+      "width": 1024,
+      "height": 1536,
+      "mask": {
+        "file": "groene-blouse-ecfa468c-masker.png",
+        "x": 249,
+        "y": 200,
+        "w": 526,
+        "h": 624
+      },
+      "bronbestand": "e18fe7c8-ed56-4504-9534-2fccc641cf76.png"
     }
   ],
   "ingetrokken": [
