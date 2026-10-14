@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from '../db/db'
+import { db, BASE_ID } from '../db/db'
 import { allItemStats, todayStr } from '../utils/stats'
 
 /** Alle kledingstukken; null zolang IndexedDB nog laadt. */
@@ -23,14 +23,24 @@ export function useItemStats() {
   return { items, wears, rows }
 }
 
-/** itemId → object-URL van de foto. De URL's worden opgeruimd bij wijzigingen. */
+/**
+ * itemId → object-URL van het plaatje van een stuk: de eigen foto, en anders
+ * het uitgeknipte stuk van de pop (dat is al een vrijstaande productfoto).
+ * De URL's worden opgeruimd bij wijzigingen.
+ */
 export function usePhotoUrls() {
   const photos = useLiveQuery(() => db.photos.toArray(), [], [])
+  const layers = useLiveQuery(() => db.layers.where('itemId').notEqual(BASE_ID).toArray(), [], [])
   const urls = useMemo(() => {
     const m = new Map()
-    for (const p of photos) if (p.blob) m.set(p.itemId, URL.createObjectURL(p.blob))
+    for (const l of layers) if (l.blob) m.set(l.itemId, URL.createObjectURL(l.blob))
+    for (const p of photos) {
+      if (!p.blob) continue
+      if (m.has(p.itemId)) URL.revokeObjectURL(m.get(p.itemId))
+      m.set(p.itemId, URL.createObjectURL(p.blob))
+    }
     return m
-  }, [photos])
+  }, [photos, layers])
   useEffect(() => () => { for (const u of urls.values()) URL.revokeObjectURL(u) }, [urls])
   return urls
 }
