@@ -19,8 +19,8 @@ function base64ToBlob(b64, type) {
 }
 
 export async function exportBackup() {
-  const [items, wears, aliases, settings, photos] = await Promise.all([
-    db.items.toArray(), db.wears.toArray(), db.aliases.toArray(), db.settings.toArray(), db.photos.toArray(),
+  const [items, wears, aliases, settings, photos, layers] = await Promise.all([
+    db.items.toArray(), db.wears.toArray(), db.aliases.toArray(), db.settings.toArray(), db.photos.toArray(), db.layers.toArray(),
   ])
   return {
     app: BACKUP_APP,
@@ -29,6 +29,9 @@ export async function exportBackup() {
     items, wears, aliases, settings,
     photos: await Promise.all(photos.map(async p => ({
       itemId: p.itemId, type: p.blob.type || 'image/jpeg', data: await blobToBase64(p.blob),
+    }))),
+    layers: await Promise.all(layers.map(async ({ blob, ...meta }) => ({
+      ...meta, type: blob.type || 'image/png', data: await blobToBase64(blob),
     }))),
   }
 }
@@ -44,13 +47,14 @@ export async function restoreBackup(json) {
     throw new Error('Dit is geen back-up van Kledingkast.')
   }
   if (b.version > BACKUP_VERSION) throw new Error('Deze back-up komt uit een nieuwere versie van de app. Werk de app eerst bij.')
-  await db.transaction('rw', db.items, db.wears, db.aliases, db.settings, db.photos, async () => {
-    await Promise.all([db.items.clear(), db.wears.clear(), db.aliases.clear(), db.settings.clear(), db.photos.clear()])
+  await db.transaction('rw', db.items, db.wears, db.aliases, db.settings, db.photos, db.layers, async () => {
+    await Promise.all([db.items.clear(), db.wears.clear(), db.aliases.clear(), db.settings.clear(), db.photos.clear(), db.layers.clear()])
     await db.items.bulkPut(b.items)
     await db.wears.bulkPut(b.wears)
     await db.aliases.bulkPut(b.aliases ?? [])
     await db.settings.bulkPut(b.settings ?? [])
     await db.photos.bulkPut((b.photos ?? []).map(p => ({ itemId: p.itemId, blob: base64ToBlob(p.data, p.type) })))
+    await db.layers.bulkPut((b.layers ?? []).map(({ data, type, ...meta }) => ({ ...meta, blob: base64ToBlob(data, type) })))
   })
-  return { items: b.items.length, wears: b.wears.length, photos: (b.photos ?? []).length }
+  return { items: b.items.length, wears: b.wears.length, photos: (b.photos ?? []).length, layers: (b.layers ?? []).length }
 }

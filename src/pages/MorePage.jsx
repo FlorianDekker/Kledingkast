@@ -2,7 +2,11 @@ import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { PageWrapper } from '../components/layout/PageWrapper'
 import { ImportSheet } from '../components/import/ImportSheet'
-import { db, setSetting } from '../db/db'
+import { db, setSetting, BASE_ID } from '../db/db'
+import { setBase, removeBase } from '../db/actions'
+import { useLayers } from '../hooks/useLayers'
+import { makeBase } from '../utils/layerImage'
+import { PROMPT_PRODUCTFOTO } from '../constants/prompts'
 import { useSetting } from '../hooks/useData'
 import { takeFile } from '../utils/fileInput'
 import { downloadFile } from '../utils/download'
@@ -11,6 +15,7 @@ import { parseAmount } from '../utils/format'
 import { todayStr } from '../utils/stats'
 
 const BUNDLED = `${import.meta.env.BASE_URL}data/Kleding.xlsx`
+const BUNDLED_BASE = `${import.meta.env.BASE_URL}data/basispop.png`
 
 function Card({ title, children }) {
   return (
@@ -29,6 +34,10 @@ export function MorePage() {
   const [msg, setMsg] = useState(null)
   const xlsxRef = useRef(null)
   const jsonRef = useRef(null)
+  const baseRef = useRef(null)
+  const layers = useLayers()
+  const base = layers?.get(BASE_ID)
+  const layerCount = layers ? [...layers.keys()].filter(k => k !== BASE_ID).length : 0
   const target = useSetting('doelCpw', 1)
   const theme = useSetting('theme', 'light')
   const counts = useLiveQuery(async () => ({
@@ -58,6 +67,22 @@ export function MorePage() {
     }
   }
 
+  async function applyBase(fileOrUrl) {
+    setMsg(null)
+    try {
+      const file = typeof fileOrUrl === 'string'
+        ? new File([await (await fetch(fileOrUrl, { cache: 'no-store' })).blob()], 'basispop.png', { type: 'image/png' })
+        : fileOrUrl
+      if (file) await setBase(await makeBase(file))
+    } catch (err) {
+      setMsg(err.message)
+    }
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); setMsg('Prompt gekopieerd.') } catch { setMsg('Kopiëren lukte niet.') }
+  }
+
   async function backup() {
     const blob = await exportBackupBlob()
     await downloadFile(blob, `kledingkast-backup-${todayStr()}.json`, { title: 'Kledingkast back-up' })
@@ -71,7 +96,7 @@ export function MorePage() {
       if (!file) return
       if (!window.confirm('Alles in de app vervangen door deze back-up?')) return
       const r = await restoreBackup(await file.text())
-      setMsg(`Back-up teruggezet: ${r.items} stukken, ${r.wears} outfits, ${r.photos} foto's.`)
+      setMsg(`Back-up teruggezet: ${r.items} stukken, ${r.wears} outfits, ${r.photos} foto's, ${r.layers} poplagen.`)
     } catch (err) {
       setMsg(err.message)
     }
@@ -79,7 +104,7 @@ export function MorePage() {
 
   async function wipe() {
     if (!window.confirm('Echt alles wissen? Kledingstukken, outfits en foto\'s zijn daarna weg. Maak eerst een back-up.')) return
-    await Promise.all([db.items.clear(), db.wears.clear(), db.aliases.clear(), db.photos.clear()])
+    await Promise.all([db.items.clear(), db.wears.clear(), db.aliases.clear(), db.photos.clear(), db.layers.clear()])
     setMsg('Alles gewist.')
   }
 
@@ -105,6 +130,25 @@ export function MorePage() {
             <button onClick={() => xlsxRef.current?.click()} className={btn} style={btnStyle}>Kies een .xlsx-bestand</button>
             <input ref={xlsxRef} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="hidden" onChange={pickXlsx} />
           </div>
+        </Card>
+
+        <Card title="Pop">
+          <p className="text-xs text-muted mb-3">
+            Je basispop: de grijze etalagepop waarop je outfits worden aangekleed. Per kledingstuk upload je in het stuk
+            zelf een afbeelding van ChatGPT met het stuk aan op de magenta pop.
+            {layerCount > 0 && ` ${layerCount} ${layerCount === 1 ? 'stuk heeft' : 'stukken hebben'} al een laag.`}
+          </p>
+          <div className="flex gap-3">
+            {base && <img src={base.url} alt="Basispop" className="h-32 rounded-xl" style={{ background: 'var(--color-surface-2)' }} />}
+            <div className="flex-1 space-y-2">
+              {!base && <button onClick={() => applyBase(BUNDLED_BASE)} className="btn-accent w-full py-2.5 text-sm">Meegeleverde basispop gebruiken</button>}
+              <button onClick={() => baseRef.current?.click()} className={btn} style={btnStyle}>{base ? 'Andere basispop' : 'Eigen basispop kiezen'}</button>
+              {base && <button onClick={() => removeBase()} className={btn} style={btnStyle}>Basispop weghalen</button>}
+              <button onClick={() => copyText(PROMPT_PRODUCTFOTO)} className={btn} style={btnStyle}>Kopieer productfoto-prompt</button>
+            </div>
+          </div>
+          <input ref={baseRef} type="file" accept="image/png,image/*" className="hidden"
+            onChange={async e => { try { const f = await takeFile(e); if (f) await applyBase(f) } catch (err) { setMsg(err.message) } }} />
         </Card>
 
         <Card title="Back-up">

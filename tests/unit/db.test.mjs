@@ -1,7 +1,8 @@
 import 'fake-indexeddb/auto'
 import { test, assert } from './t.mjs'
 import { db } from '../../src/db/db.js'
-import { applyImport, importedFormKeys, saveItem, saveWear, deleteItem, mergeItems, setPhoto } from '../../src/db/actions.js'
+import { applyImport, importedFormKeys, saveItem, saveWear, deleteItem, mergeItems, setPhoto, setLayer, setBase } from '../../src/db/actions.js'
+import { BASE_ID } from '../../src/db/db.js'
 import { planImport } from '../../src/utils/importForm.js'
 import { exportBackup, restoreBackup } from '../../src/utils/backup.js'
 
@@ -58,9 +59,22 @@ await test('saveWear weigert een lege outfit', async () => {
   await assert.rejects(() => saveWear({ datum: '2024-05-02', itemIds: [] }), /minstens/)
 })
 
-await test('back-up en terugzetten, inclusief foto', async () => {
+await test('poplaag gaat mee bij samenvoegen en weg bij verwijderen', async () => {
+  const a = await saveItem({ naam: 'Laag A', categorie: 'tshirt' })
+  const b = await saveItem({ naam: 'Laag B', categorie: 'tshirt' })
+  await setLayer(a.id, { blob: new Blob([new Uint8Array([9])], { type: 'image/png' }), x: 1, y: 2, w: 3, h: 4, width: 10, height: 15 })
+  await mergeItems(a.id, b.id)
+  assert.equal(await db.layers.get(a.id), undefined)
+  assert.equal((await db.layers.get(b.id)).x, 1)
+  await deleteItem(b.id)
+  assert.equal(await db.layers.get(b.id), undefined)
+})
+
+await test('back-up en terugzetten, inclusief foto en poplagen', async () => {
   const it = (await db.items.toArray())[0]
   await setPhoto(it.id, new Blob([new Uint8Array([1, 2, 3, 250])], { type: 'image/jpeg' }))
+  await setBase({ blob: new Blob([new Uint8Array([7, 7])], { type: 'image/png' }), width: 10, height: 15 })
+  await setLayer(it.id, { blob: new Blob([new Uint8Array([5])], { type: 'image/png' }), x: 1, y: 2, w: 3, h: 4, width: 10, height: 15 })
   const backup = JSON.parse(JSON.stringify(await exportBackup()))
   const before = { items: await db.items.count(), wears: await db.wears.count() }
   await db.items.clear()
@@ -69,5 +83,8 @@ await test('back-up en terugzetten, inclusief foto', async () => {
   assert.equal(await db.wears.count(), before.wears)
   const p = await db.photos.get(it.id)
   assert.deepEqual([...new Uint8Array(await p.blob.arrayBuffer())], [1, 2, 3, 250])
+  assert.equal(r.layers, 2)
+  assert.deepEqual([...new Uint8Array(await (await db.layers.get(BASE_ID)).blob.arrayBuffer())], [7, 7])
+  assert.equal((await db.layers.get(it.id)).h, 4)
   await assert.rejects(() => restoreBackup({ app: 'iets anders' }), /geen back-up/)
 })

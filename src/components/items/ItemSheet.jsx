@@ -4,6 +4,7 @@ import { Sheet } from '../ui/Sheet'
 import { ItemThumb } from './ItemThumb'
 import { ItemPickerSheet } from './ItemPickerSheet'
 import { Chip } from '../ui/Chip'
+import { DollSection } from './DollSection'
 import { db } from '../../db/db'
 import { saveItem, deleteItem, mergeItems, setPhoto, removePhoto } from '../../db/actions'
 import { CATEGORIES } from '../../constants/categories'
@@ -181,6 +182,8 @@ function ItemSheetInner({ onClose, itemId, preset, onSaved }) {
             </div>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickPhoto} />
           </div>
+
+          {!isNew && <DollSection item={item} />}
 
           {stats && (
             <div className="grid grid-cols-3 gap-2">

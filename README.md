@@ -7,7 +7,8 @@ Live: https://floriandekker.github.io/Kledingkast/ (op de iPhone: Delen → Zet 
 - **Vandaag**: outfit loggen per categorie, "zelfde als laatst", eerdere dagen bewerken.
 - **Kast**: stukken met foto, prijs, kleur, uit de kast/verkocht; samenvoegen van dubbele stukken.
 - **Statistieken**: cost per wear, per soort, per aankoopjaar, per kleur, over tijd, plus suggesties.
-- **Meer**: import van de Google Sheet (.xlsx, herhaalbaar), back-up als JSON, instellingen.
+- **Meer**: import van de Google Sheet (.xlsx, herhaalbaar), basispop, back-up als JSON, instellingen.
+- **Aankleedpop**: outfits op een etalagepop, met per stuk een laag uit een magenta-pop-afbeelding van ChatGPT. Zie [docs/POP.md](docs/POP.md).
 
 Data staat alleen lokaal in IndexedDB (Dexie). Elk record heeft een uuid en `updatedAt`, zodat er later synchronisatie bovenop kan.
 

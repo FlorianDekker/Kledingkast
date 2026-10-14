@@ -1,4 +1,4 @@
-import { db, newId, now } from './db'
+import { db, newId, now, BASE_ID } from './db'
 import { normName } from '../utils/importForm'
 import { guessColour } from '../utils/colors'
 
@@ -22,7 +22,7 @@ export async function saveItem(item) {
 
 /** Verwijdert een stuk; het verdwijnt ook uit outfits (een lege outfit gaat weg). */
 export async function deleteItem(id) {
-  await db.transaction('rw', db.items, db.wears, db.photos, db.aliases, async () => {
+  await db.transaction('rw', db.items, db.wears, db.photos, db.layers, db.aliases, async () => {
     const wears = await db.wears.where('itemIds').equals(id).toArray()
     for (const w of wears) {
       const itemIds = w.itemIds.filter(x => x !== id)
@@ -33,6 +33,7 @@ export async function deleteItem(id) {
     // stuk niet stilletjes opnieuw aanmaakt.
     await db.aliases.where('itemId').equals(id).modify({ itemId: null })
     await db.photos.delete(id)
+    await db.layers.delete(id)
     await db.items.delete(id)
   })
 }
@@ -43,7 +44,7 @@ export async function deleteItem(id) {
  */
 export async function mergeItems(fromId, intoId) {
   if (fromId === intoId) return
-  await db.transaction('rw', db.items, db.wears, db.photos, db.aliases, async () => {
+  await db.transaction('rw', db.items, db.wears, db.photos, db.layers, db.aliases, async () => {
     const from = await db.items.get(fromId)
     const wears = await db.wears.where('itemIds').equals(fromId).toArray()
     for (const w of wears) {
@@ -56,7 +57,12 @@ export async function mergeItems(fromId, intoId) {
       const p = await db.photos.get(fromId)
       if (p) await db.photos.put({ itemId: intoId, blob: p.blob })
     }
+    if (!(await db.layers.get(intoId))) {
+      const l = await db.layers.get(fromId)
+      if (l) await db.layers.put({ ...l, itemId: intoId })
+    }
     await db.photos.delete(fromId)
+    await db.layers.delete(fromId)
     await db.items.delete(fromId)
   })
 }
@@ -65,6 +71,14 @@ export async function mergeItems(fromId, intoId) {
 
 export const setPhoto = (itemId, blob) => db.photos.put({ itemId, blob })
 export const removePhoto = itemId => db.photos.delete(itemId)
+
+// ── Pop ────────────────────────────────────────────────────────────
+
+/** layer = { blob, x, y, w, h, width, height } (zie utils/layerImage) */
+export const setLayer = (itemId, layer) => db.layers.put({ itemId, ...layer })
+export const removeLayer = itemId => db.layers.delete(itemId)
+export const setBase = base => db.layers.put({ itemId: BASE_ID, x: 0, y: 0, w: base.width, h: base.height, ...base })
+export const removeBase = () => db.layers.delete(BASE_ID)
 
 // ── Outfits ────────────────────────────────────────────────────────
 
